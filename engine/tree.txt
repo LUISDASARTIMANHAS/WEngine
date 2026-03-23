@@ -1,0 +1,45 @@
+engine-0.0.2/
+│
+├── index.html
+├── style.css
+│
+├── engine/
+│   ├── core/
+│   │   ├── Engine.js
+│   │   ├── Scene.js
+│   │   ├── Entity.js
+│   │   ├── Component.js
+│   │   └── Camera.js
+│   │
+│   ├── components/
+│   │   ├── Transform.js
+│   │   ├── Sprite.js
+│   │   ├── Collider.js
+│   │   ├── Script.js
+│   │   ├── Health.js
+│   │   ├── Damage.js
+│   │   ├── Weapon.js
+│   │   ├── Projectile.js
+│   │   ├── Lifetime.js
+│   │   ├── Team.js
+│   │   └── Tag.js
+│   │
+│   ├── systems/
+│   │   ├── InputSystem.js
+│   │   ├── RenderSystem.js
+│   │   ├── CollisionSystem.js
+│   │   ├── DamageSystem.js
+│   │   ├── LifetimeSystem.js
+│   │   └── CleanupSystem.js
+│   │
+│   └── factories/
+│       └── EntityFactory.js
+│
+└── game/
+    ├── main.js
+    ├── scenes/
+    │   └── TestScene.js
+    └── scripts/
+        ├── PlayerController.js
+        ├── EnemyAI.js
+        └── FactorySpawner.js
