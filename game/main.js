@@ -3,6 +3,7 @@ import { InputSystem } from "../engine/systems/InputSystem.js";
 import { TestScene } from "./scenes/TestScene.js";
 import { Transform } from "../engine/components/Transform.js";
 import { Health } from "../engine/components/Health.js";
+import { registerDemoBuilders } from "./registerDemoBuilders.js";
 
 const canvas = document.getElementById("gameCanvas");
 const debugFps = document.getElementById("debug-fps");
@@ -15,14 +16,15 @@ const minimapCanvas = document.getElementById("minimapCanvas");
 InputSystem.init();
 
 const engine = new Engine(canvas);
-const scene = new TestScene();
+registerDemoBuilders(engine);
 
+const scene = new TestScene();
 
 engine.setMinimap(minimapCanvas, {
   worldWidth: scene.mapWidth,
   worldHeight: scene.mapHeight,
   minEntitySize: 2,
-  useSpriteColor: true
+  useSpriteColor: true,
 });
 
 engine.setScene(scene);

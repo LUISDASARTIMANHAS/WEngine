@@ -1,3 +1,6 @@
+/**
+ * Entidade base da engine.
+ */
 export class Entity {
   /**
    * @param {string} [name="Entity"]
@@ -29,7 +32,6 @@ export class Entity {
 
     /**
      * Índice de componentes por classe.
-     * Melhora a performance de busca.
      * @type {Map<Function, any>}
      */
     this.componentMap = new Map();
@@ -62,7 +64,7 @@ export class Entity {
     this.active = false;
 
     this.getLogger()?.info("entity", "Entidade destruída.", {
-      entityName: this.name
+      entityName: this.name,
     });
   }
 
@@ -78,7 +80,7 @@ export class Entity {
 
     this.getLogger()?.debug("entity", "Componente adicionado.", {
       entityName: this.name,
-      componentName: component.constructor.name
+      componentName: component.constructor.name,
     });
 
     if (typeof component.start === "function") {
@@ -89,8 +91,18 @@ export class Entity {
   }
 
   /**
+   * Adiciona um componente e retorna a própria entidade.
+   * Útil para composição encadeável.
+   * @param {any} component
+   * @returns {Entity}
+   */
+  add(component) {
+    this.addComponent(component);
+    return this;
+  }
+
+  /**
    * Busca componente por classe.
-   * Agora usa cache em Map em vez de varrer array.
    * @template T
    * @param {new (...args: any[]) => T} ComponentClass
    * @returns {T|null}
