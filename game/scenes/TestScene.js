@@ -1,6 +1,4 @@
 import { Scene } from "../../engine/core/Scene.js";
-import { FactorySpawner } from "../scripts/FactorySpawner.js";
-import { Transform } from "../../engine/components/Transform.js";
 
 /**
  * Cena de teste da engine 0.0.2
@@ -29,10 +27,11 @@ export class TestScene extends Scene {
   start() {
     const { entityFactory } = this.engine;
 
-    const player = entityFactory.createPlayer({
+    const player = entityFactory.create("player", {
       x: 300,
-      y: 300
+      y: 300,
     });
+
     this.addEntity(player);
 
     this.#createWorldBounds();
@@ -51,43 +50,43 @@ export class TestScene extends Scene {
     const wallThickness = 80;
 
     this.addEntity(
-      entityFactory.createWall({
+      entityFactory.create("wall", {
         name: "WallTop",
         x: 0,
         y: 0,
         width: this.mapWidth,
-        height: wallThickness
-      })
+        height: wallThickness,
+      }),
     );
 
     this.addEntity(
-      entityFactory.createWall({
+      entityFactory.create("wall", {
         name: "WallBottom",
         x: 0,
         y: this.mapHeight - wallThickness,
         width: this.mapWidth,
-        height: wallThickness
-      })
+        height: wallThickness,
+      }),
     );
 
     this.addEntity(
-      entityFactory.createWall({
+      entityFactory.create("wall", {
         name: "WallLeft",
         x: 0,
         y: 0,
         width: wallThickness,
-        height: this.mapHeight
-      })
+        height: this.mapHeight,
+      }),
     );
 
     this.addEntity(
-      entityFactory.createWall({
+      entityFactory.create("wall", {
         name: "WallRight",
         x: this.mapWidth - wallThickness,
         y: 0,
         width: wallThickness,
-        height: this.mapHeight
-      })
+        height: this.mapHeight,
+      }),
     );
   }
 
@@ -107,11 +106,11 @@ export class TestScene extends Scene {
       { name: "Block_F", x: 1900, y: 2800, width: 60, height: 800 },
       { name: "Block_G", x: 2800, y: 2600, width: 800, height: 60 },
       { name: "Block_H", x: 3600, y: 800, width: 60, height: 900 },
-      { name: "Block_I", x: 3500, y: 3400, width: 900, height: 60 }
+      { name: "Block_I", x: 3500, y: 3400, width: 900, height: 60 },
     ];
 
     for (const wall of walls) {
-      this.addEntity(entityFactory.createWall(wall));
+      this.addEntity(entityFactory.create("wall", wall));
     }
   }
 
@@ -131,31 +130,22 @@ export class TestScene extends Scene {
       { x: 1000, y: 3200 },
       { x: 2300, y: 2100 },
       { x: 3800, y: 2600 },
-      { x: 4200, y: 3900 }
+      { x: 4200, y: 3900 },
     ];
 
     for (let index = 0; index < factoryPositions.length; index += 1) {
       const position = factoryPositions[index];
 
-      const factory = entityFactory.createFactory({
+      const factory = entityFactory.create("factory", {
+        name: `Factory_${index + 1}`,
         x: position.x,
-        y: position.y
+        y: position.y,
+        width: 90,
+        height: 90,
+        spawnInterval: 1.2,
+        maxChildren: 25,
+        spawnRadius: 140,
       });
-
-      factory.name = `Factory_${index + 1}`;
-      factory.addComponent(
-        new FactorySpawner({
-          interval: 1.2,
-          maxChildren: 25,
-          spawnRadius: 140
-        })
-      );
-
-      const factoryTransform = factory.getComponent(Transform);
-      if (factoryTransform) {
-        factoryTransform.width = 90;
-        factoryTransform.height = 90;
-      }
 
       this.addEntity(factory);
     }

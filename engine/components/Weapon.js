@@ -5,54 +5,89 @@ import { Transform } from "./Transform.js";
  * Componente de arma.
  */
 export class Weapon extends Component {
-    /**
-     * @param {object} options
-     * @param {number} options.damage
-     * @param {number} options.fireRate
-     * @param {number} options.projectileSpeed
-     */
-    constructor(options = {}) {
-        super();
-        this.damage = options.damage ?? 10;
-        this.fireRate = options.fireRate ?? 0.3;
-        this.projectileSpeed = options.projectileSpeed ?? 420;
-        this.cooldown = 0;
-    }
+  /**
+   * @param {object} [options={}]
+   * @param {number} [options.damage=10]
+   * @param {number} [options.fireRate=0.3]
+   * @param {number} [options.projectileSpeed=420]
+   */
+  constructor(options = {}) {
+    super();
 
     /**
-     * @param {number} deltaTime
-     * @returns {void}
+     * Dano do projétil.
+     * @type {number}
      */
-    update(deltaTime) {
-        if (this.cooldown > 0) {
-            this.cooldown -= deltaTime;
-        }
-    }
+    this.damage = options.damage ?? 10;
 
     /**
-     * Atira um projétil.
-     * @param {number} directionX
-     * @param {number} directionY
-     * @returns {void}
+     * Tempo entre disparos.
+     * @type {number}
      */
-    fire(directionX, directionY) {
-        if (this.cooldown > 0) return;
+    this.fireRate = options.fireRate ?? 0.3;
 
-        const scene = this.entity.scene;
-        const transform = this.entity.getComponent(Transform);
-        if (!scene || !transform) return;
+    /**
+     * Velocidade do projétil.
+     * @type {number}
+     */
+    this.projectileSpeed = options.projectileSpeed ?? 420;
 
-        const bullet = scene.engine.entityFactory.createBullet({
-            x: transform.x + transform.width / 2,
-            y: transform.y + transform.height / 2,
-            directionX,
-            directionY,
-            speed: this.projectileSpeed,
-            damage: this.damage,
-            owner: this.entity
-        });
+    /**
+     * Tempo restante até poder atirar novamente.
+     * @type {number}
+     */
+    this.cooldown = 0;
+  }
 
-        scene.addEntity(bullet);
-        this.cooldown = this.fireRate;
+  /**
+   * Atualiza o cooldown da arma.
+   * @param {number} deltaTime
+   * @returns {void}
+   */
+  update(deltaTime) {
+    if (this.cooldown > 0) {
+      this.cooldown -= deltaTime;
     }
+  }
+
+  /**
+   * Atira um projétil.
+   * @param {number} directionX
+   * @param {number} directionY
+   * @returns {void}
+   */
+  fire(directionX, directionY) {
+    if (this.cooldown > 0) {
+      return;
+    }
+
+    const scene = this.entity.scene;
+    const transform = this.entity.getComponent(Transform);
+
+    if (!scene || !transform) {
+      return;
+    }
+
+    const length = Math.hypot(directionX, directionY);
+
+    if (length <= 0) {
+      return;
+    }
+
+    const normalizedX = directionX / length;
+    const normalizedY = directionY / length;
+
+    const bullet = scene.engine.entityFactory.create("bullet", {
+      x: transform.x + transform.width / 2,
+      y: transform.y + transform.height / 2,
+      directionX: normalizedX,
+      directionY: normalizedY,
+      speed: this.projectileSpeed,
+      damage: this.damage,
+      owner: this.entity,
+    });
+
+    scene.addEntity(bullet);
+    this.cooldown = this.fireRate;
+  }
 }
