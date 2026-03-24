@@ -66,56 +66,43 @@ Recursos já implementados:
 
 ```txt
 WEngine
-├── LICENSE
-├── README.md
-├── engine
-│   ├── ai
-│   │   ├── StateMachine.js
-│   │   └── States.js      
-│   ├── components
-│   │   ├── Collider.js    
-│   │   ├── Damage.js      
-│   │   ├── Health.js      
-│   │   ├── Lifetime.js
-│   │   ├── NetworkIdentity.js
-│   │   ├── Projectile.js
-│   │   ├── Script.js
-│   │   ├── Spawner.js
-│   │   ├── Sprite.js
-│   │   ├── Tag.js
-│   │   ├── Team.js
-│   │   ├── Transform.js
-│   │   └── Weapon.js
-│   ├── core
-│   │   ├── Camera.js
-│   │   ├── Component.js
-│   │   ├── Engine.js
-│   │   ├── EngineConfig.js
-│   │   ├── Entity.js
-│   │   └── Scene.js
-│   ├── factories
-│   │   └── EntityFactory.js
-│   ├── systems
-│   │   ├── CleanupSystem.js
-│   │   ├── CollisionSystem.js
-│   │   ├── DamageSystem.js
-│   │   ├── InputSystem.js
-│   │   ├── MinimapSystem.js
-│   │   ├── NetworkClientSystem.js
-│   │   └── RenderSystem.js
-│   ├── tree.cmd
-│   ├── tree.txt
-│   └── utils
-│       ├── Logger.js
-│       └── Time.js
-├── game
-│   ├── main.js
-│   ├── scenes
-│   │   └── TestScene.js
-│   └── scripts
-│       ├── EnemyAI.js
-│       ├── FactorySpawner.js
-│       └── PlayerController.js
-├── index.html
-└── style.css
+engine
+├── ai
+│   ├── StateMachine.js
+│   └── States.js
+├── components
+│   ├── Collider.js
+│   ├── Damage.js
+│   ├── Health.js
+│   ├── Lifetime.js
+│   ├── NetworkIdentity.js
+│   ├── Projectile.js
+│   ├── Script.js
+│   ├── Spawner.js
+│   ├── Sprite.js
+│   ├── Tag.js
+│   ├── Team.js
+│   ├── Transform.js
+│   └── Weapon.js
+├── core
+│   ├── Camera.js
+│   ├── Component.js
+│   ├── Engine.js
+│   ├── EngineConfig.js
+│   ├── Entity.js
+│   └── Scene.js
+├── factories
+│   └── EntityFactory.js
+├── systems
+│   ├── CleanupSystem.js
+│   ├── CollisionSystem.js
+│   ├── DamageSystem.js
+│   ├── InputSystem.js
+│   ├── MinimapSystem.js
+│   ├── NetworkClientSystem.js
+│   └── RenderSystem.js
+├── tree.txt
+└── utils
+    ├── Logger.js
+    └── Time.js
 ```
