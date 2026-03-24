@@ -2,33 +2,47 @@ import { Script } from "../../engine/components/Script.js";
 import { Transform } from "../../engine/components/Transform.js";
 
 /**
- * Spawner periódico de inimigos.
+ * Spawner periódico de inimigos por fábrica.
  */
 export class FactorySpawner extends Script {
   /**
-   * @param {number} interval
-   * @param {number} maxChildren
+   * @param {object} [options={}]
+   * @param {number} [options.interval=1]
+   * @param {number} [options.maxChildren=15]
+   * @param {number} [options.spawnRadius=100]
    */
-  constructor(interval = 1, maxChildren = 15) {
+  constructor(options = {}) {
     super();
 
     /**
-     * Intervalo entre spawns.
+     * Intervalo entre spawns em segundos.
      * @type {number}
      */
-    this.interval = interval;
+    this.interval = options.interval ?? 1;
 
     /**
-     * Limite de inimigos gerados.
+     * Máximo de inimigos vivos criados por esta fábrica.
      * @type {number}
      */
-    this.maxChildren = maxChildren;
+    this.maxChildren = options.maxChildren ?? 15;
+
+    /**
+     * Distância do ponto de spawn em relação à fábrica.
+     * @type {number}
+     */
+    this.spawnRadius = options.spawnRadius ?? 100;
 
     /**
      * Tempo acumulado.
      * @type {number}
      */
     this.elapsed = 0;
+
+    /**
+     * IDs dos inimigos gerados por esta fábrica.
+     * @type {Set<string>}
+     */
+    this.childrenNames = new Set();
   }
 
   /**
@@ -39,26 +53,64 @@ export class FactorySpawner extends Script {
   update(deltaTime) {
     this.elapsed += deltaTime;
 
-    if (this.elapsed < this.interval) return;
+    if (this.elapsed < this.interval) {
+      return;
+    }
 
     const scene = this.entity.scene;
     const transform = this.entity.getComponent(Transform);
 
-    if (!scene || !transform) return;
+    if (!scene || !transform) {
+      return;
+    }
 
-    const currentEnemies = scene.entities.filter((entity) => {
-      return entity.name.startsWith("Enemy") && !entity.destroyed;
-    }).length;
+    this.#cleanupDestroyedChildren(scene);
 
-    if (currentEnemies >= this.maxChildren) return;
+    if (this.childrenNames.size >= this.maxChildren) {
+      return;
+    }
 
     this.elapsed = 0;
 
+    const spawnPosition = this.#getSpawnPosition(transform);
     const enemy = scene.engine.entityFactory.createEnemy({
-      x: transform.x + 80,
-      y: transform.y + 20
+      x: spawnPosition.x,
+      y: spawnPosition.y
     });
 
+    enemy.factoryOwnerName = this.entity.name;
+    this.childrenNames.add(enemy.name);
+
     scene.addEntity(enemy);
+  }
+
+  /**
+   * Remove da lista os inimigos que já não existem mais.
+   * @param {import("../../engine/core/Scene.js").Scene} scene
+   * @returns {void}
+   */
+  #cleanupDestroyedChildren(scene) {
+    for (const childName of this.childrenNames) {
+      const child = scene.getEntityByName(childName);
+
+      if (!child || child.destroyed) {
+        this.childrenNames.delete(childName);
+      }
+    }
+  }
+
+  /**
+   * Calcula uma posição aleatória ao redor da fábrica.
+   * @param {Transform} transform
+   * @returns {{x: number, y: number}}
+   */
+  #getSpawnPosition(transform) {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = 60 + Math.random() * this.spawnRadius;
+
+    return {
+      x: transform.x + Math.cos(angle) * radius,
+      y: transform.y + Math.sin(angle) * radius
+    };
   }
 }
