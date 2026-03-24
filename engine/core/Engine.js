@@ -151,35 +151,83 @@ export class Engine {
   }
 
   /**
+   * Para o loop principal.
+   * @return {void}
+   */
+  stop() {
+    if (!this.isRunning) {
+      this.logger.warn("engine", "Tentativa de parar a engine já parada.");
+      return;
+    }
+
+    this.isRunning = false;
+
+    this.logger.info("engine", "Loop principal interrompido.");
+  }
+
+  /**
    * Loop principal.
    * @param {number} currentTime
    * @return {void}
    */
   loop(currentTime) {
-    if (!this.isRunning || !this.currentScene) return;
+    if (!this.isRunning || !this.currentScene) {
+      return;
+    }
 
+    const frameStart = performance.now();
     const deltaTime = this.time.update(currentTime);
 
+    const updateStart = performance.now();
+    this.currentScene.update(deltaTime);
+    const updateEnd = performance.now();
+
+    const collisionStart = performance.now();
+    this.collisionSystem.resolve(this.currentScene);
+    const collisionEnd = performance.now();
+
+    const damageStart = performance.now();
+    this.damageSystem.process(this.currentScene);
+    const damageEnd = performance.now();
+
+    const cameraStart = performance.now();
+    this.camera.update();
+    const cameraEnd = performance.now();
+
+    const renderStart = performance.now();
+    this.renderSystem.render(this.currentScene);
+    const renderEnd = performance.now();
+
+    const cleanupStart = performance.now();
+    this.cleanupSystem.process(this.currentScene);
+    const cleanupEnd = performance.now();
+
+    const debugStart = performance.now();
+    this.onDebug(this);
+    const debugEnd = performance.now();
+
+    const frameEnd = performance.now();
+
     this.logger.debugThrottle(
-      "engine-loop",
-      10*1000,
+      "engine-performance",
+      2000,
       "engine",
-      "Frame processado.",
+      "Métricas de performance do frame.",
       {
         sceneName: this.currentScene.name,
+        entityCount: this.currentScene.entities.length,
+        fps: this.time.fps,
         deltaTime,
-        entityCount: this.currentScene.entities.length
+        totalFrameMs: Number((frameEnd - frameStart).toFixed(3)),
+        updateMs: Number((updateEnd - updateStart).toFixed(3)),
+        collisionMs: Number((collisionEnd - collisionStart).toFixed(3)),
+        damageMs: Number((damageEnd - damageStart).toFixed(3)),
+        cameraMs: Number((cameraEnd - cameraStart).toFixed(3)),
+        renderMs: Number((renderEnd - renderStart).toFixed(3)),
+        cleanupMs: Number((cleanupEnd - cleanupStart).toFixed(3)),
+        debugMs: Number((debugEnd - debugStart).toFixed(3))
       }
     );
-
-    this.currentScene.update(deltaTime);
-    this.collisionSystem.resolve(this.currentScene);
-    this.damageSystem.process(this.currentScene);
-    this.camera.update();
-    this.renderSystem.render(this.currentScene);
-    this.cleanupSystem.process(this.currentScene);
-
-    this.onDebug(this);
 
     requestAnimationFrame(this.loop.bind(this));
   }

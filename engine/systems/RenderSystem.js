@@ -32,10 +32,20 @@ export class RenderSystem {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
     for (const entity of scene.entities) {
+      if (!entity.active || entity.destroyed) {
+        continue;
+      }
+
       const transform = entity.getComponent(Transform);
       const sprite = entity.getComponent(Sprite);
 
-      if (!transform || !sprite) continue;
+      if (!transform || !sprite) {
+        continue;
+      }
+
+      if (!this.isInCamera(transform)) {
+        continue;
+      }
 
       this.ctx.fillStyle = sprite.color;
       this.ctx.fillRect(
@@ -45,5 +55,19 @@ export class RenderSystem {
         transform.height
       );
     }
+  }
+
+  /**
+   * Verifica se a entidade está visível na câmera.
+   * @param {Transform} transform
+   * @return {boolean}
+   */
+  isInCamera(transform) {
+    return (
+      transform.x + transform.width >= this.camera.x &&
+      transform.x <= this.camera.x + this.camera.width &&
+      transform.y + transform.height >= this.camera.y &&
+      transform.y <= this.camera.y + this.camera.height
+    );
   }
 }

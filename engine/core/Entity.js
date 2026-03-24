@@ -28,6 +28,13 @@ export class Entity {
     this.components = [];
 
     /**
+     * Índice de componentes por classe.
+     * Melhora a performance de busca.
+     * @type {Map<Function, any>}
+     */
+    this.componentMap = new Map();
+
+    /**
      * Cena da entidade.
      * @type {import("./Scene.js").Scene|null}
      */
@@ -47,6 +54,10 @@ export class Entity {
    * @returns {void}
    */
   destroy() {
+    if (this.destroyed) {
+      return;
+    }
+
     this.destroyed = true;
     this.active = false;
 
@@ -63,6 +74,7 @@ export class Entity {
   addComponent(component) {
     component.entity = this;
     this.components.push(component);
+    this.componentMap.set(component.constructor, component);
 
     this.getLogger()?.debug("entity", "Componente adicionado.", {
       entityName: this.name,
@@ -78,13 +90,22 @@ export class Entity {
 
   /**
    * Busca componente por classe.
-   * @param {any} ComponentClass
-   * @returns {any|null}
+   * Agora usa cache em Map em vez de varrer array.
+   * @template T
+   * @param {new (...args: any[]) => T} ComponentClass
+   * @returns {T|null}
    */
   getComponent(ComponentClass) {
-    return this.components.find(
-      (component) => component instanceof ComponentClass
-    ) || null;
+    return this.componentMap.get(ComponentClass) ?? null;
+  }
+
+  /**
+   * Verifica se a entidade possui um componente.
+   * @param {Function} ComponentClass
+   * @returns {boolean}
+   */
+  hasComponent(ComponentClass) {
+    return this.componentMap.has(ComponentClass);
   }
 
   /**
@@ -93,7 +114,9 @@ export class Entity {
    * @returns {void}
    */
   update(deltaTime) {
-    if (!this.active || this.destroyed) return;
+    if (!this.active || this.destroyed) {
+      return;
+    }
 
     for (const component of this.components) {
       if (typeof component.update === "function") {
