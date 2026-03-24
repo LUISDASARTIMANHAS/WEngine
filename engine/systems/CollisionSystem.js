@@ -27,6 +27,11 @@ export class CollisionSystem {
 
         if (!this.isColliding(transformA, transformB)) continue;
 
+        // scene.engine?.logger?.debug("collision", "Colisão detectada.", {
+        //   entityA: entityA.name,
+        //   entityB: entityB.name
+        // });
+
         if (!colliderA.isStatic && colliderB.isStatic) {
           this.separate(transformA, transformB);
         } else if (colliderA.isStatic && !colliderB.isStatic) {
@@ -81,7 +86,7 @@ export class CollisionSystem {
     } else if (minOverlap === overlapTop) {
       dynamicTransform.y = staticTransform.y - dynamicTransform.height;
     } else if (minOverlap === overlapBottom) {
-      dynamicTransform.y = staticTransform.y + staticTransform.height;
+      dynamicTransform.y = staticTransform.y + dynamicTransform.height;
     }
   }
 }

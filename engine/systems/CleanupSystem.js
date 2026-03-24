@@ -7,6 +7,18 @@ export class CleanupSystem {
    * @returns {void}
    */
   process(scene) {
+    const beforeCount = scene.entities.length;
+
     scene.entities = scene.entities.filter((entity) => !entity.destroyed);
+
+    const removedCount = beforeCount - scene.entities.length;
+
+    if (removedCount > 0) {
+      scene.engine?.logger?.info("cleanup", "Entidades removidas da cena.", {
+        sceneName: scene.name,
+        removedCount,
+        remainingCount: scene.entities.length
+      });
+    }
   }
 }

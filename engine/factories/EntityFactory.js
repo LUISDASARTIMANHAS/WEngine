@@ -18,6 +18,17 @@ import { EnemyAI } from "../../game/scripts/EnemyAI.js";
  */
 export class EntityFactory {
   /**
+   * @param {import("../utils/Logger.js").Logger|null} [logger=null]
+   */
+  constructor(logger = null) {
+    /**
+     * Logger da fábrica.
+     * @type {import("../utils/Logger.js").Logger|null}
+     */
+    this.logger = logger;
+  }
+
+  /**
    * Cria o player.
    * @param {object} options
    * @param {number} options.x
@@ -44,6 +55,12 @@ export class EntityFactory {
     player.addComponent(new Tag("player"));
     player.addComponent(new PlayerController(180));
 
+    this.logger?.info("factory", "Player criado.", {
+      entityName: player.name,
+      x: options.x ?? 100,
+      y: options.y ?? 100
+    });
+
     return player;
   }
 
@@ -55,7 +72,9 @@ export class EntityFactory {
    * @returns {Entity}
    */
   createEnemy(options = {}) {
-    const enemy = new Entity(`Enemy_${Date.now()}_${Math.floor(Math.random() * 1000)}`);
+    const enemy = new Entity(
+      `Enemy_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+    );
 
     enemy.addComponent(
       new Transform(options.x ?? 400, options.y ?? 200, 30, 30)
@@ -79,6 +98,12 @@ export class EntityFactory {
         stopDistance: 28
       })
     );
+
+    this.logger?.info("factory", "Inimigo criado.", {
+      entityName: enemy.name,
+      x: options.x ?? 400,
+      y: options.y ?? 200
+    });
 
     return enemy;
   }
@@ -109,6 +134,14 @@ export class EntityFactory {
     wall.addComponent(new Tag("wall"));
     wall.addComponent(new Team("neutral"));
 
+    this.logger?.info("factory", "Parede criada.", {
+      entityName: wall.name,
+      x: options.x ?? 0,
+      y: options.y ?? 0,
+      width: options.width ?? 50,
+      height: options.height ?? 50
+    });
+
     return wall;
   }
 
@@ -131,6 +164,12 @@ export class EntityFactory {
     factory.addComponent(new Team("enemy"));
     factory.addComponent(new Tag("factory"));
 
+    this.logger?.info("factory", "Fábrica criada.", {
+      entityName: factory.name,
+      x: options.x ?? 700,
+      y: options.y ?? 120
+    });
+
     return factory;
   }
 
@@ -148,6 +187,7 @@ export class EntityFactory {
    */
   createBullet(options = {}) {
     const bullet = new Entity("Bullet");
+    const ownerTeam = this.#resolveOwnerTeam(options.owner);
 
     bullet.addComponent(
       new Transform(options.x ?? 0, options.y ?? 0, 10, 10)
@@ -164,8 +204,18 @@ export class EntityFactory {
     );
     bullet.addComponent(new Lifetime(2));
     bullet.addComponent(new Damage(options.damage ?? 10));
-    bullet.addComponent(new Team(this.#resolveOwnerTeam(options.owner)));
+    bullet.addComponent(new Team(ownerTeam));
     bullet.addComponent(new Tag("bullet"));
+
+    this.logger?.debug("factory", "Projétil criado.", {
+      entityName: bullet.name,
+      x: options.x ?? 0,
+      y: options.y ?? 0,
+      damage: options.damage ?? 10,
+      speed: options.speed ?? 450,
+      ownerName: options.owner?.name ?? null,
+      ownerTeam
+    });
 
     return bullet;
   }

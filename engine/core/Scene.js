@@ -2,6 +2,9 @@
  * Representa uma cena do jogo.
  */
 export class Scene {
+  /**
+   * @param {string} [name="Scene"]
+   */
   constructor(name = "Scene") {
     /**
      * Nome da cena.
@@ -47,6 +50,13 @@ export class Scene {
   addEntity(entity) {
     entity.scene = this;
     this.entities.push(entity);
+
+    this.engine?.logger?.info("scene", "Entidade adicionada à cena.", {
+      sceneName: this.name,
+      entityName: entity.name,
+      totalEntities: this.entities.length
+    });
+
     return entity;
   }
 

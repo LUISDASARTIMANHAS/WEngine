@@ -55,6 +55,13 @@ export class DamageSystem {
 
         targetHealth.takeDamage(attackerDamage.value);
         attacker.destroy();
+
+        scene.engine?.logger?.info("damage", "Dano aplicado.", {
+          attackerName: attacker.name,
+          targetName: target.name,
+          damageValue: attackerDamage.value
+        });
+
         break;
       }
     }
