@@ -10,11 +10,20 @@ const debugEntities = document.getElementById("debug-entities");
 const debugPlayerX = document.getElementById("debug-player-x");
 const debugPlayerY = document.getElementById("debug-player-y");
 const debugPlayerHp = document.getElementById("debug-player-hp");
+const minimapCanvas = document.getElementById("minimapCanvas");
 
 InputSystem.init();
 
 const engine = new Engine(canvas);
 const scene = new TestScene();
+
+
+engine.setMinimap(minimapCanvas, {
+  worldWidth: scene.mapWidth,
+  worldHeight: scene.mapHeight,
+  minEntitySize: 2,
+  useSpriteColor: true
+});
 
 engine.setScene(scene);
 

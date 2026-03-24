@@ -9,6 +9,7 @@ import { Lifetime } from "../components/Lifetime.js";
 import { Weapon } from "../components/Weapon.js";
 import { Team } from "../components/Team.js";
 import { Tag } from "../components/Tag.js";
+import { Spawner } from "../components/Spawner.js";
 
 import { PlayerController } from "../../game/scripts/PlayerController.js";
 import { EnemyAI } from "../../game/scripts/EnemyAI.js";
@@ -39,7 +40,7 @@ export class EntityFactory {
     const player = new Entity("Player");
 
     player.addComponent(
-      new Transform(options.x ?? 100, options.y ?? 100, 32, 32)
+      new Transform(options.x ?? 100, options.y ?? 100, 32, 32),
     );
     player.addComponent(new Sprite("#3b82f6"));
     player.addComponent(new Collider(false));
@@ -48,8 +49,8 @@ export class EntityFactory {
       new Weapon({
         damage: 20,
         fireRate: 0.25,
-        projectileSpeed: 450
-      })
+        projectileSpeed: 450,
+      }),
     );
     player.addComponent(new Team("player"));
     player.addComponent(new Tag("player"));
@@ -58,7 +59,7 @@ export class EntityFactory {
     this.logger?.info("factory", "Player criado.", {
       entityName: player.name,
       x: options.x ?? 100,
-      y: options.y ?? 100
+      y: options.y ?? 100,
     });
 
     return player;
@@ -73,11 +74,11 @@ export class EntityFactory {
    */
   createEnemy(options = {}) {
     const enemy = new Entity(
-      `Enemy_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+      `Enemy_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
     );
 
     enemy.addComponent(
-      new Transform(options.x ?? 400, options.y ?? 200, 30, 30)
+      new Transform(options.x ?? 400, options.y ?? 200, 30, 30),
     );
     enemy.addComponent(new Sprite("#22c55e"));
     enemy.addComponent(new Collider(false));
@@ -88,21 +89,21 @@ export class EntityFactory {
       new Weapon({
         damage: 8,
         fireRate: 0.9,
-        projectileSpeed: 300
-      })
+        projectileSpeed: 300,
+      }),
     );
     enemy.addComponent(
       new EnemyAI({
         speed: 90,
         detectionRadius: 260,
-        stopDistance: 28
-      })
+        stopDistance: 28,
+      }),
     );
 
     this.logger?.info("factory", "Inimigo criado.", {
       entityName: enemy.name,
       x: options.x ?? 400,
-      y: options.y ?? 200
+      y: options.y ?? 200,
     });
 
     return enemy;
@@ -126,8 +127,8 @@ export class EntityFactory {
         options.x ?? 0,
         options.y ?? 0,
         options.width ?? 50,
-        options.height ?? 50
-      )
+        options.height ?? 50,
+      ),
     );
     wall.addComponent(new Sprite("#6b7280"));
     wall.addComponent(new Collider(true));
@@ -139,7 +140,7 @@ export class EntityFactory {
       x: options.x ?? 0,
       y: options.y ?? 0,
       width: options.width ?? 50,
-      height: options.height ?? 50
+      height: options.height ?? 50,
     });
 
     return wall;
@@ -153,22 +154,29 @@ export class EntityFactory {
    * @returns {Entity}
    */
   createFactory(options = {}) {
-    const factory = new Entity("Factory");
+    const factory = new Entity(options.name ?? "Factory");
 
     factory.addComponent(
-      new Transform(options.x ?? 700, options.y ?? 120, 64, 64)
+      new Transform(options.x ?? 700, options.y ?? 120, 64, 64),
     );
     factory.addComponent(new Sprite("#f97316"));
     factory.addComponent(new Collider(true));
-    factory.addComponent(new Health(150));
-    factory.addComponent(new Team("enemy"));
+    factory.addComponent(new Health(options.health ?? 150));
+    factory.addComponent(new Team(options.team ?? "enemy"));
     factory.addComponent(new Tag("factory"));
 
-    this.logger?.info("factory", "Fábrica criada.", {
-      entityName: factory.name,
-      x: options.x ?? 700,
-      y: options.y ?? 120
-    });
+    if (options.enableSpawner ?? true) {
+      factory.addComponent(
+        new Spawner({
+          interval: options.spawnInterval ?? 1,
+          maxChildren: options.maxChildren ?? 25,
+          spawnRadius: options.spawnRadius ?? 140,
+          createEntity: (scene, x, y) => {
+            return scene.engine.entityFactory.createEnemy({ x, y });
+          },
+        }),
+      );
+    }
 
     return factory;
   }
@@ -189,9 +197,7 @@ export class EntityFactory {
     const bullet = new Entity("Bullet");
     const ownerTeam = this.#resolveOwnerTeam(options.owner);
 
-    bullet.addComponent(
-      new Transform(options.x ?? 0, options.y ?? 0, 10, 10)
-    );
+    bullet.addComponent(new Transform(options.x ?? 0, options.y ?? 0, 10, 10));
     bullet.addComponent(new Sprite("#facc15"));
     bullet.addComponent(new Collider(false));
     bullet.addComponent(
@@ -199,8 +205,8 @@ export class EntityFactory {
         speed: options.speed ?? 450,
         directionX: options.directionX ?? 1,
         directionY: options.directionY ?? 0,
-        owner: options.owner ?? null
-      })
+        owner: options.owner ?? null,
+      }),
     );
     bullet.addComponent(new Lifetime(2));
     bullet.addComponent(new Damage(options.damage ?? 10));
@@ -214,7 +220,7 @@ export class EntityFactory {
       damage: options.damage ?? 10,
       speed: options.speed ?? 450,
       ownerName: options.owner?.name ?? null,
-      ownerTeam
+      ownerTeam,
     });
 
     return bullet;

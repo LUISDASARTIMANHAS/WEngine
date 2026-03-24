@@ -6,6 +6,7 @@ import { CleanupSystem } from "../systems/CleanupSystem.js";
 import { Time } from "../utils/Time.js";
 import { Logger } from "../utils/Logger.js";
 import { EntityFactory } from "../factories/EntityFactory.js";
+import { MinimapSystem } from "../systems/MinimapSystem.js";
 
 /**
  * Núcleo principal da engine.
@@ -38,6 +39,12 @@ export class Engine {
     this.currentScene = null;
 
     /**
+     * Sistema de minimapa.
+     * @type {MinimapSystem|null}
+     */
+    this.minimapSystem = null;
+
+    /**
      * Controle de execução.
      * @type {boolean}
      */
@@ -56,7 +63,7 @@ export class Engine {
     this.logger = new Logger({
       enabled: true,
       debugEnabled: true,
-      prefix: "WEngine"
+      prefix: "WEngine",
     });
 
     /**
@@ -105,8 +112,18 @@ export class Engine {
 
     this.logger.info("engine", "Engine inicializada.", {
       canvasWidth: this.canvas.width,
-      canvasHeight: this.canvas.height
+      canvasHeight: this.canvas.height,
     });
+  }
+
+  /**
+   * Define o minimapa da engine.
+   * @param {HTMLCanvasElement} canvas
+   * @param {object} [options={}]
+   * @returns {void}
+   */
+  setMinimap(canvas, options = {}) {
+    this.minimapSystem = new MinimapSystem(canvas, options);
   }
 
   /**
@@ -119,13 +136,13 @@ export class Engine {
     scene.engine = this;
 
     this.logger.info("scene", "Cena definida.", {
-      sceneName: scene.name
+      sceneName: scene.name,
     });
 
     scene.start();
 
     this.logger.debug("scene", "Cena iniciada.", {
-      sceneName: scene.name
+      sceneName: scene.name,
     });
   }
 
@@ -135,7 +152,10 @@ export class Engine {
    */
   start() {
     if (this.isRunning) {
-      this.logger.warn("engine", "Tentativa de iniciar a engine já em execução.");
+      this.logger.warn(
+        "engine",
+        "Tentativa de iniciar a engine já em execução.",
+      );
       return;
     }
 
@@ -173,6 +193,9 @@ export class Engine {
   loop(currentTime) {
     if (!this.isRunning || !this.currentScene) {
       return;
+    }
+    if (this.minimapSystem) {
+      this.minimapSystem.render(this.currentScene, this.camera);
     }
 
     const frameStart = performance.now();
@@ -225,8 +248,8 @@ export class Engine {
         cameraMs: Number((cameraEnd - cameraStart).toFixed(3)),
         renderMs: Number((renderEnd - renderStart).toFixed(3)),
         cleanupMs: Number((cleanupEnd - cleanupStart).toFixed(3)),
-        debugMs: Number((debugEnd - debugStart).toFixed(3))
-      }
+        debugMs: Number((debugEnd - debugStart).toFixed(3)),
+      },
     );
 
     requestAnimationFrame(this.loop.bind(this));

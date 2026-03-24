@@ -22,7 +22,8 @@ engine-0.0.2/
 │   │   ├── Projectile.js
 │   │   ├── Lifetime.js
 │   │   ├── Team.js
-│   │   └── Tag.js
+│   │   ├── Tag.js
+│   │   └── Spawner.js
 │   │
 │   ├── systems/
 │   │   ├── InputSystem.js
@@ -30,10 +31,16 @@ engine-0.0.2/
 │   │   ├── CollisionSystem.js
 │   │   ├── DamageSystem.js
 │   │   ├── LifetimeSystem.js
-│   │   └── CleanupSystem.js
+│   │   ├── CleanupSystem.js
+│   │   └── MinimapSystem.js
 │   │
-│   └── factories/
-│       └── EntityFactory.js
+│   ├── factories/
+│   │   └── EntityFactory.js
+│   │
+│   └── utils/
+│       ├── Time.js
+│       ├── Logger.js
+│       └── Performance.js
 │
 └── game/
     ├── main.js
@@ -41,5 +48,4 @@ engine-0.0.2/
     │   └── TestScene.js
     └── scripts/
         ├── PlayerController.js
-        ├── EnemyAI.js
-        └── FactorySpawner.js
+        └── EnemyAI.js
