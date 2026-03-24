@@ -65,48 +65,57 @@ Recursos já implementados:
 ## Estrutura do projeto
 
 ```txt
-project/
-├── index.html
-├── style.css
-├── engine/
-│   ├── core/
-│   │   ├── Engine.js
-│   │   ├── Scene.js
-│   │   ├── Entity.js
-│   │   ├── Component.js
-│   │   └── Camera.js
-│   │
-│   ├── components/
-│   │   ├── Transform.js
-│   │   ├── Sprite.js
-│   │   ├── Collider.js
-│   │   ├── Script.js
-│   │   ├── Health.js
-│   │   ├── Damage.js
-│   │   ├── Weapon.js
-│   │   ├── Projectile.js
+WEngine
+├── LICENSE
+├── README.md
+├── engine
+│   ├── ai
+│   │   ├── StateMachine.js
+│   │   └── States.js      
+│   ├── components
+│   │   ├── Collider.js    
+│   │   ├── Damage.js      
+│   │   ├── Health.js      
 │   │   ├── Lifetime.js
+│   │   ├── NetworkIdentity.js
+│   │   ├── Projectile.js
+│   │   ├── Script.js
+│   │   ├── Spawner.js
+│   │   ├── Sprite.js
+│   │   ├── Tag.js
 │   │   ├── Team.js
-│   │   └── Tag.js
-│   │
-│   ├── systems/
-│   │   ├── InputSystem.js
-│   │   ├── RenderSystem.js
+│   │   ├── Transform.js
+│   │   └── Weapon.js
+│   ├── core
+│   │   ├── Camera.js
+│   │   ├── Component.js
+│   │   ├── Engine.js
+│   │   ├── EngineConfig.js
+│   │   ├── Entity.js
+│   │   └── Scene.js
+│   ├── factories
+│   │   └── EntityFactory.js
+│   ├── systems
+│   │   ├── CleanupSystem.js
 │   │   ├── CollisionSystem.js
 │   │   ├── DamageSystem.js
-│   │   └── CleanupSystem.js
-│   │
-│   ├── factories/
-│   │   └── EntityFactory.js
-│   │
-│   └── utils/
+│   │   ├── InputSystem.js
+│   │   ├── MinimapSystem.js
+│   │   ├── NetworkClientSystem.js
+│   │   └── RenderSystem.js
+│   ├── tree.cmd
+│   ├── tree.txt
+│   └── utils
+│       ├── Logger.js
 │       └── Time.js
-│
-└── game/
-    ├── main.js
-    ├── scenes/
-    │   └── TestScene.js
-    └── scripts/
-        ├── PlayerController.js
-        ├── EnemyAI.js
-        └── FactorySpawner.js
+├── game
+│   ├── main.js
+│   ├── scenes
+│   │   └── TestScene.js
+│   └── scripts
+│       ├── EnemyAI.js
+│       ├── FactorySpawner.js
+│       └── PlayerController.js
+├── index.html
+└── style.css
+```
