@@ -1,0 +1,64 @@
+WEngine
+├── LICENSE
+├── README.md
+├── engine
+│   ├── ai
+│   │   ├── EnemyAI.js
+│   │   ├── StateMachine.js
+│   │   └── States.js
+│   ├── behaviours
+│   │   ├── KeyboardMovement.js
+│   │   └── KeyboardShooter.js
+│   ├── components
+│   │   ├── Collider.js
+│   │   ├── Damage.js
+│   │   ├── Health.js
+│   │   ├── Lifetime.js
+│   │   ├── NetworkIdentity.js
+│   │   ├── Projectile.js
+│   │   ├── Script.js
+│   │   ├── Spawner.js
+│   │   ├── Sprite.js
+│   │   ├── Tag.js
+│   │   ├── Team.js
+│   │   ├── Transform.js
+│   │   └── Weapon.js
+│   ├── core
+│   │   ├── Camera.js
+│   │   ├── Component.js
+│   │   ├── Engine.js
+│   │   ├── EngineConfig.js
+│   │   ├── Entity.js
+│   │   └── Scene.js
+│   ├── factories
+│   │   ├── EntityFactory.js
+│   │   └── builders
+│   │       ├── buildBullet.js
+│   │       ├── buildEnemy.js
+│   │       ├── buildFactory.js
+│   │       ├── buildPlayer.js
+│   │       └── buildWall.js
+│   ├── systems
+│   │   ├── CleanupSystem.js
+│   │   ├── CollisionSystem.js
+│   │   ├── DamageSystem.js
+│   │   ├── InputSystem.js
+│   │   ├── MinimapSystem.js
+│   │   ├── NetworkClientSystem.js
+│   │   └── RenderSystem.js
+│   └── utils
+│       ├── Logger.js
+│       └── Time.js
+├── gameDemo
+│   ├── index.html
+│   ├── main.js
+│   ├── registerDemoBuilders.js
+│   ├── scenes
+│   │   └── TestScene.js
+│   ├── scripts
+│   │   └── script.js
+│   └── style.css
+├── package-lock.json
+├── package.json
+├── tree.cmd
+└── tree.txt
