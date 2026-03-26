@@ -6,7 +6,7 @@ import { Health } from "../../components/Health.js";
 import { Weapon } from "../../components/Weapon.js";
 import { Team } from "../../components/Team.js";
 import { Tag } from "../../components/Tag.js";
-import { EnemyAI } from "../../../game/scripts/EnemyAI.js";
+import { EnemyAI } from "../../ai/EnemyAI.js";
 
 /**
  * Cria e configura a entidade inimigo.
