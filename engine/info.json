@@ -1,0 +1,24 @@
+{
+  "name": "wengine",
+  "version": "0.0.3",
+  "description": "Motor de jogo 2D e 3D para navegador, desenvolvido em JavaScript com foco em simplicidade, modularidade e evolução incremental.",
+  "main": "core/Engine.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LUISDASARTIMANHAS/WEngine.git"
+  },
+  "keywords": [
+    "game-engine",
+    "webgl",
+    "2d",
+    "3d",
+    "ecs"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/LUISDASARTIMANHAS/WEngine/issues"
+  },
+  "homepage": "https://github.com/LUISDASARTIMANHAS/WEngine#readme"
+}

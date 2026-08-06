@@ -1,10 +1,10 @@
 # WEngine
 
-Motor de jogo 2D para navegador, desenvolvido em JavaScript com foco em simplicidade, modularidade e evolução incremental.
+Motor de jogo 2D e 3D para navegador, desenvolvido em JavaScript com foco em simplicidade, modularidade e evolução incremental.
 
-A proposta da WEngine é servir como uma base própria para criação de jogos no navegador, oferecendo arquitetura orientada a componentes, entidades reutilizáveis, sistemas independentes e suporte a gameplay progressiva.
+A proposta da WEngine é servir como uma base própria para criação de jogos no navegador, oferecendo arquitetura orientada a componentes, entidades reutilizáveis, sistemas independentes, suporte a WebGL 3D nativo e gameplay progressiva.
 
-Atualmente o projeto está na versão **0.0.2**, com recursos iniciais para movimentação, câmera, colisão, vida, dano, projéteis, armas, entidades de combate e fábricas de spawn.
+Atualmente o projeto está na versão **0.0.3**, com recursos para 2D e suporte nativo completo a **3D WebGL** (transformação 3D, malhas, iluminação, câmera perspectiva e física/colisão 3D).
 
 ---
 
@@ -14,17 +14,15 @@ A engine foi criada para permitir testes rápidos de ideias de gameplay sem depe
 
 O foco desta fase é construir uma base funcional com:
 
-- renderização 2D em canvas
-- sistema de entidades e componentes
-- cena principal
-- câmera
-- colisão
-- vida e morte
-- projéteis
-- armas
-- inimigos com IA simples
-- fábricas de entidades
-- depuração básica
+- renderização 2D em canvas e **renderização 3D em WebGL Nativo**
+- sistema de entidades e componentes em arquitetura ECS
+- matemática 3D (`Vector3`, `Matrix4`, projeções perspectiva e visão)
+- transformações 3D (`Transform3D`) e primitivas de malha (`Mesh3D`: cubo, plano, pirâmide)
+- iluminação 3D (`Light3D`: direcional, ambiente)
+- câmera 2D e câmera 3D perspectiva (`Camera3D`)
+- colisão 2D AABB e colisão 3D AABB (`CollisionSystem3D`, `Collider3D`)
+- movimentação de jogador em 3D (`KeyboardMovement3D`)
+- fábrica de entidades extensível para 2D e 3D
 
 ---
 
@@ -32,33 +30,23 @@ O foco desta fase é construir uma base funcional com:
 
 O objetivo da WEngine é evoluir de forma incremental, começando com uma estrutura mínima e expandindo para recursos mais avançados conforme a necessidade do jogo.
 
-Em vez de tentar competir com engines grandes logo no início, a ideia é construir um núcleo limpo, entendível e fácil de modificar.
-
 ---
 
 ## Estado atual
 
-Versão atual: **v0.0.2**
+Versão atual: **v0.0.3**
 
 Recursos já implementados:
 
-- loop principal
-- controle de tempo
-- sistema de cena
-- sistema de entidades
-- sistema de componentes
-- câmera
-- renderização de sprites simples
-- colisão básica
-- player controlável
-- inimigos com perseguição
-- arma e disparo
-- projéteis
-- sistema de dano
-- sistema de vida
-- destruição de entidades
-- limpeza de entidades destruídas
-- fábricas/spawners de inimigos
+- loop principal 2D / 3D
+- renderização 3D nativa via WebGL (`RenderSystem3D`)
+- shader de iluminação (Phong/Directional) e matrizes MVP
+- componentes 3D (`Transform3D`, `Mesh3D`, `Light3D`, `Collider3D`)
+- física e resolução de colisão 3D (`CollisionSystem3D`)
+- câmera 3D perspectiva com acompanhamento de alvos (`Camera3D`)
+- controles 3D de jogador (`KeyboardMovement3D`)
+- exemplo de demo jogável 3D em `game3D/`
+- sistema 2D original completo em `gameDemo/`
 
 ---
 
@@ -66,43 +54,26 @@ Recursos já implementados:
 
 ```txt
 WEngine
-engine
-├── ai
-│   ├── StateMachine.js
-│   └── States.js
-├── components
-│   ├── Collider.js
-│   ├── Damage.js
-│   ├── Health.js
-│   ├── Lifetime.js
-│   ├── NetworkIdentity.js
-│   ├── Projectile.js
-│   ├── Script.js
-│   ├── Spawner.js
-│   ├── Sprite.js
-│   ├── Tag.js
-│   ├── Team.js
-│   ├── Transform.js
-│   └── Weapon.js
-├── core
-│   ├── Camera.js
-│   ├── Component.js
-│   ├── Engine.js
-│   ├── EngineConfig.js
-│   ├── Entity.js
-│   └── Scene.js
-├── factories
-│   └── EntityFactory.js
-├── systems
-│   ├── CleanupSystem.js
-│   ├── CollisionSystem.js
-│   ├── DamageSystem.js
-│   ├── InputSystem.js
-│   ├── MinimapSystem.js
-│   ├── NetworkClientSystem.js
-│   └── RenderSystem.js
-├── tree.txt
-└── utils
-    ├── Logger.js
-    └── Time.js
+├── engine
+│   ├── components
+│   │   ├── Collider3D.js
+│   │   ├── Light3D.js
+│   │   ├── Mesh3D.js
+│   │   └── Transform3D.js
+│   ├── core
+│   │   ├── Camera3D.js
+│   │   ├── Engine.js
+│   │   └── ...
+│   ├── systems
+│   │   ├── CollisionSystem3D.js
+│   │   ├── RenderSystem3D.js
+│   │   └── ...
+│   └── utils
+│       └── Math3D.js
+├── game2D (gameDemo)
+└── game3D
+    ├── index.html
+    ├── main.js
+    └── scenes
+        └── TestScene3D.js
 ```

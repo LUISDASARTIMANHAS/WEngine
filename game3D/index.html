@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WEngine 3D - WebGL Native Engine Demo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app-container">
+    <header>
+      <div class="logo-badge">WENGINE 3D</div>
+      <h1>WebGL Native Engine Core</h1>
+      <span class="mode-tag">v0.0.3 3D</span>
+    </header>
+
+    <div id="canvas-container">
+      <canvas id="gameCanvas3D"></canvas>
+    </div>
+
+    <div id="hud-overlay">
+      <div class="hud-title">Controles 3D</div>
+      <div class="control-item">
+        <span>Mover para frente/trás:</span>
+        <div><span class="key">W</span> / <span class="key">S</span> ou <span class="key">↑</span> / <span class="key">↓</span></div>
+      </div>
+      <div class="control-item">
+        <span>Girar Câmera/Player:</span>
+        <div><span class="key">A</span> / <span class="key">D</span> ou <span class="key">←</span> / <span class="key">→</span></div>
+      </div>
+      <div class="control-item">
+        <span>Subir / Descer:</span>
+        <div><span class="key">Espaço</span> / <span class="key">Shift</span></div>
+      </div>
+    </div>
+
+    <div id="telemetry-panel">
+      <div class="hud-title">Telemetria WebGL</div>
+      <div class="stat-row">
+        <span>Modo:</span>
+        <span id="mode-val" class="stat-val">3D (WebGL)</span>
+      </div>
+      <div class="stat-row">
+        <span>FPS:</span>
+        <span id="fps-val" class="stat-val">0</span>
+      </div>
+      <div class="stat-row">
+        <span>Entidades:</span>
+        <span id="entity-val" class="stat-val">0</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>

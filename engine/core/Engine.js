@@ -1,6 +1,9 @@
 import { Camera } from "./Camera.js";
+import { Camera3D } from "./Camera3D.js";
 import { RenderSystem } from "../systems/RenderSystem.js";
+import { RenderSystem3D } from "../systems/RenderSystem3D.js";
 import { CollisionSystem } from "../systems/CollisionSystem.js";
+import { CollisionSystem3D } from "../systems/CollisionSystem3D.js";
 import { DamageSystem } from "../systems/DamageSystem.js";
 import { CleanupSystem } from "../systems/CleanupSystem.js";
 import { Time } from "../utils/Time.js";
@@ -14,8 +17,10 @@ import { MinimapSystem } from "../systems/MinimapSystem.js";
 export class Engine {
   /**
    * @param {HTMLCanvasElement} canvas
+   * @param {object} [options]
+   * @param {'2d'|'3d'} [options.mode='2d'] Modo de renderização da engine
    */
-  constructor(canvas) {
+  constructor(canvas, options = {}) {
     /**
      * Canvas principal.
      * @type {HTMLCanvasElement}
@@ -23,13 +28,33 @@ export class Engine {
     this.canvas = canvas;
 
     /**
-     * Contexto 2D.
-     * @type {CanvasRenderingContext2D}
+     * Modo de operação ('2d' ou '3d').
+     * @type {'2d'|'3d'}
      */
-    this.ctx = canvas.getContext("2d");
+    this.mode = options.mode || "2d";
 
-    if (!this.ctx) {
-      throw new Error("Não foi possível obter o contexto 2D do canvas.");
+    /**
+     * Contexto 2D (se modo 2d).
+     * @type {CanvasRenderingContext2D|null}
+     */
+    this.ctx = null;
+
+    /**
+     * Contexto WebGL (se modo 3d).
+     * @type {WebGLRenderingContext|null}
+     */
+    this.gl = null;
+
+    if (this.mode === "3d") {
+      this.gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      if (!this.gl) {
+        throw new Error("Não foi possível obter o contexto WebGL do canvas.");
+      }
+    } else {
+      this.ctx = canvas.getContext("2d");
+      if (!this.ctx) {
+        throw new Error("Não foi possível obter o contexto 2D do canvas.");
+      }
     }
 
     /**
@@ -67,24 +92,28 @@ export class Engine {
     });
 
     /**
-     * Câmera principal.
-     * @type {Camera}
+     * Câmeras.
      */
     this.camera = new Camera();
     this.camera.width = canvas.width;
     this.camera.height = canvas.height;
 
-    /**
-     * Sistema de renderização.
-     * @type {RenderSystem}
-     */
-    this.renderSystem = new RenderSystem(this.ctx, this.camera);
+    this.camera3D = new Camera3D({
+      fov: options.fov || 60,
+      aspect: canvas.width / (canvas.height || 1),
+    });
 
     /**
-     * Sistema de colisão.
-     * @type {CollisionSystem}
+     * Sistemas de renderização.
+     */
+    this.renderSystem = this.ctx ? new RenderSystem(this.ctx, this.camera) : null;
+    this.renderSystem3D = this.gl ? new RenderSystem3D(this.gl, this.camera3D) : null;
+
+    /**
+     * Sistemas de colisão.
      */
     this.collisionSystem = new CollisionSystem();
+    this.collisionSystem3D = new CollisionSystem3D();
 
     /**
      * Sistema de dano.
@@ -111,6 +140,7 @@ export class Engine {
     this.onDebug = () => {};
 
     this.logger.info("engine", "Engine inicializada.", {
+      mode: this.mode,
       canvasWidth: this.canvas.width,
       canvasHeight: this.canvas.height,
     });
@@ -194,7 +224,7 @@ export class Engine {
     if (!this.isRunning || !this.currentScene) {
       return;
     }
-    if (this.minimapSystem) {
+    if (this.minimapSystem && this.mode === "2d") {
       this.minimapSystem.render(this.currentScene, this.camera);
     }
 
@@ -206,7 +236,11 @@ export class Engine {
     const updateEnd = performance.now();
 
     const collisionStart = performance.now();
-    this.collisionSystem.resolve(this.currentScene);
+    if (this.mode === "3d") {
+      this.collisionSystem3D.resolve(this.currentScene);
+    } else {
+      this.collisionSystem.resolve(this.currentScene);
+    }
     const collisionEnd = performance.now();
 
     const damageStart = performance.now();
@@ -214,11 +248,19 @@ export class Engine {
     const damageEnd = performance.now();
 
     const cameraStart = performance.now();
-    this.camera.update();
+    if (this.mode === "3d") {
+      this.camera3D.update();
+    } else {
+      this.camera.update();
+    }
     const cameraEnd = performance.now();
 
     const renderStart = performance.now();
-    this.renderSystem.render(this.currentScene);
+    if (this.mode === "3d" && this.renderSystem3D) {
+      this.renderSystem3D.render(this.currentScene);
+    } else if (this.renderSystem) {
+      this.renderSystem.render(this.currentScene);
+    }
     const renderEnd = performance.now();
 
     const cleanupStart = performance.now();
@@ -237,6 +279,7 @@ export class Engine {
       "engine",
       "Métricas de performance do frame.",
       {
+        mode: this.mode,
         sceneName: this.currentScene.name,
         entityCount: this.currentScene.entities.length,
         fps: this.time.fps,
