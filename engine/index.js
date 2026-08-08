@@ -12,6 +12,7 @@ export { Time } from "./utils/Time.js";
 export { Logger } from "./utils/Logger.js";
 export { InputSystem } from "./systems/InputSystem.js";
 export { EntityFactory } from "./factories/EntityFactory.js";
+export { ErrorDisplaySystem } from "./systems/ErrorDisplaySystem.js";
 
 // Módulos Especializados 2D e 3D
 import * as Engine2D from "./2d/index.js";

@@ -10,6 +10,7 @@ import { Time } from "../utils/Time.js";
 import { Logger } from "../utils/Logger.js";
 import { EntityFactory } from "../factories/EntityFactory.js";
 import { MinimapSystem } from "../systems/MinimapSystem.js";
+import { ErrorDisplaySystem } from "../systems/ErrorDisplaySystem.js";
 
 /**
  * Núcleo principal da engine.
@@ -132,6 +133,12 @@ export class Engine {
      * @type {EntityFactory}
      */
     this.entityFactory = new EntityFactory(this.logger);
+
+    /**
+     * Sistema de exibição de erros na tela.
+     * @type {ErrorDisplaySystem}
+     */
+    this.errorDisplaySystem = new ErrorDisplaySystem();
 
     /**
      * Callback de debug.
@@ -296,5 +303,26 @@ export class Engine {
     );
 
     requestAnimationFrame(this.loop.bind(this));
+  }
+
+  /**
+   * Adiciona um erro ao painel de exibição de erros.
+   * @param {string} message - Mensagem de erro
+   * @param {string} [source="Engine Error"] - Origem do erro
+   * @param {string} [stack=""] - Stack trace do erro
+   * @return {void}
+   */
+  displayError(message, source = "Engine Error", stack = "") {
+    if (this.errorDisplaySystem) {
+      this.errorDisplaySystem.addError(message, source, stack);
+    }
+  }
+
+  /**
+   * Retorna o sistema de exibição de erros.
+   * @return {ErrorDisplaySystem}
+   */
+  getErrorDisplaySystem() {
+    return this.errorDisplaySystem;
   }
 }
