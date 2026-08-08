@@ -1,5 +1,5 @@
-import { Engine } from "../engine/core/Engine.js";
-import { InputSystem } from "../engine/systems/InputSystem.js";
+import { Engine, InputSystem } from "../engine/index.js";
+import { Raycaster3D, ParticleSystem3D } from "../engine/3d/index.js";
 import { register3DBuilders } from "./register3DBuilders.js";
 import { TestScene3D } from "./scenes/TestScene3D.js";
 
@@ -9,7 +9,6 @@ InputSystem.init();
 // Obtém o elemento canvas WebGL
 const canvas = document.getElementById("gameCanvas3D");
 
-// Ajusta o tamanho do canvas para o contêiner
 function resizeCanvas() {
   canvas.width = canvas.clientWidth || window.innerWidth;
   canvas.height = canvas.clientHeight || window.innerHeight;
@@ -23,12 +22,36 @@ const engine = new Engine(canvas, {
   fov: 60,
 });
 
-// Registra builders 3D na fábrica de entidades
 register3DBuilders(engine);
 
-// Cria e ativa a cena 3D
 const scene = new TestScene3D();
 engine.setScene(scene);
+
+// Raycaster 3D para Interação por Clique de Mouse
+const raycaster = new Raycaster3D();
+
+canvas.addEventListener("click", (e) => {
+  if (!engine.currentScene || !engine.camera3D) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+
+  raycaster.setFromCamera(mouseX, mouseY, canvas.width, canvas.height, engine.camera3D);
+  const hits = raycaster.intersectScene(engine.currentScene);
+
+  if (hits.length > 0) {
+    const hit = hits[0];
+    // Encontra sistema de partículas para gerar explosão no ponto clicado
+    for (const ent of engine.currentScene.entities) {
+      const ps = ent.getComponent(ParticleSystem3D);
+      if (ps) {
+        ps.burst(hit.point, 25);
+        break;
+      }
+    }
+  }
+});
 
 // Telemetria e Dashboard no HUD
 const fpsVal = document.getElementById("fps-val");
@@ -41,5 +64,4 @@ engine.onDebug = (eng) => {
   if (modeVal) modeVal.textContent = eng.mode.toUpperCase() + " (WebGL)";
 };
 
-// Inicia o motor
 engine.start();

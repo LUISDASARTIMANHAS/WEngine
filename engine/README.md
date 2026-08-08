@@ -1,87 +1,106 @@
 # WEngine - Engine 2D & 3D WebGL
 
-Este documento descreve a arquitetura interna da WEngine, suas funcionalidades 2D e 3D e como usar o motor para criar cenas, entidades, componentes e comportamentos tridimensionais ou bidimensionais.
-
-## Objetivo
-
-A WEngine é um motor de jogo para navegador projetado para ser simples, modular, sem dependências externas pesadas e fácil de estender. Ela oferece:
-
-- arquitetura orientada a entidades e componentes (ECS)
-- **Modo 3D Nativo via WebGL** (`mode: '3d'`) com iluminação, câmera perspectiva e malhas 3D
-- Modo 2D Canvas (`mode: '2d'`) original
-- matemática 3D própria (`Vector3`, `Matrix4`)
-- sistemas independentes para renderização 2D/3D, colisão 2D/3D, dano, limpeza e minimapa
-- fábrica de entidades para registrar builders reutilizáveis em 2D e 3D
-
-## Estrutura principal
-
-- `engine/core/Engine.js` - núcleo da engine e loop principal (2D/3D)
-- `engine/core/Camera3D.js` - câmera 3D perspectiva com target tracking
-- `engine/utils/Math3D.js` - operações de vetores 3D e matrizes 4x4
-- `engine/components/Transform3D.js` - posição, rotação e escala 3D
-- `engine/components/Mesh3D.js` - dados de geometria WebGL (Cubo, Plano, Pirâmide)
-- `engine/components/Light3D.js` - luzes 3D (Direcional, Ambiente, Pontual)
-- `engine/components/Collider3D.js` - caixa delimitadora 3D (AABB)
-- `engine/behaviours/KeyboardMovement3D.js` - movimentação 3D por teclado
-- `engine/systems/RenderSystem3D.js` - renderizador 3D WebGL com shaders e iluminação
-- `engine/systems/CollisionSystem3D.js` - sistema de detecção e resolução de colisão AABB 3D
-- `game3D/` - demo jogável WebGL 3D
-
-## Uso do Modo 3D
-
-```js
-import { Engine } from "./engine/core/Engine.js";
-import { InputSystem } from "./engine/systems/InputSystem.js";
-import { TestScene3D } from "./game3D/scenes/TestScene3D.js";
-import { register3DBuilders } from "./game3D/register3DBuilders.js";
-
-const canvas = document.getElementById("gameCanvas3D");
-InputSystem.init();
-
-// Inicialização da WEngine em modo 3D WebGL
-const engine = new Engine(canvas, {
-  mode: "3d",
-  fov: 60
-});
-
-register3DBuilders(engine);
-
-const scene = new TestScene3D();
-engine.setScene(scene);
-engine.start();
-```
-
-## Componentes 3D Principais
-
-### `Transform3D`
-Manipula posição `(x, y, z)`, rotação `(rx, ry, rz)` em radianos e escala `(sx, sy, sz)`. Gera matriz de modelo (Model Matrix).
-
-### `Mesh3D`
-Armazena vértices, normais, índices e cor RGBA. Oferece geradores de primitivas estáticos:
-- `Mesh3D.createCube(size, color)`
-- `Mesh3D.createPlane(width, depth, color)`
-- `Mesh3D.createPyramid(baseSize, height, color)`
-
-### `Light3D`
-Define parâmetros de iluminação para a cena 3D (direção, cor e intensidade).
-
-### `Collider3D`
-Define caixa AABB 3D com `width`, `height`, `depth` e flag `isStatic`.
-
-## Sistemas 3D
-
-### `RenderSystem3D`
-- Compila shaders de vértices e fragmentos em WebGL
-- Computa matrizes de modelo, visão e projeção (MVP)
-- Aplica iluminação ambiente e difusa (Directional Lighting)
-- Gerencia VBO, NBO e IBO com culling de faces traseiras e z-buffer
-
-### `CollisionSystem3D`
-- Teste e resolução de intersecção AABB no espaço 3D (X, Y e Z)
+Este documento descreve a arquitetura interna da WEngine, sua estrutura de módulos **2D** e **3D** claramente separados, e o ecossistema WebGL expandido.
 
 ---
 
-## Demos disponíveis
+## Estrutura e Separação de Módulos (2D vs 3D)
 
-- `gameDemo/` - Demo 2D original
-- `game3D/` - Demo 3D WebGL Nativo
+Para evitar qualquer confusão entre desenvolvimento 2D e 3D, a WEngine foi reestruturada em sub-módulos dedicados e independentes sob `engine/2d/` e `engine/3d/`, acessíveis via importações diretas ou namespaces:
+
+```
+engine/
+├── index.js              # Ponto de entrada unificado da Engine e ECS
+├── 2d/                   # Módulo Exclusivo 2D (Canvas Context)
+│   ├── index.js          # Barrel export de todas as APIs 2D
+│   ├── components/       # Transform2D, Sprite, Collider2D
+│   ├── systems/          # RenderSystem2D, CollisionSystem2D, MinimapSystem
+│   ├── core/             # Camera2D
+│   └── behaviours/       # KeyboardMovement2D
+└── 3d/                   # Módulo Exclusivo 3D (WebGL Native)
+    ├── index.js          # Barrel export de todas as APIs 3D
+    ├── components/       # Transform3D, Mesh3D, Light3D, Collider3D, Material3D, Skybox3D, ParticleSystem3D
+    ├── systems/          # RenderSystem3D, CollisionSystem3D
+    ├── core/             # Camera3D, OrbitControls3D, Raycaster3D
+    ├── behaviours/       # KeyboardMovement3D, Rotator3D, Floating3D
+    └── utils/            # Math3D (Vector3, Matrix4, Ray), OBJLoader3D
+```
+
+### Como importar:
+
+#### 1. Importação Modular 3D (Recomendado para 3D)
+```js
+import { Engine, InputSystem } from "./engine/index.js";
+import {
+  Mesh3D,
+  Transform3D,
+  Material3D,
+  Skybox3D,
+  ParticleSystem3D,
+  Raycaster3D,
+  OrbitControls3D,
+  OBJLoader3D
+} from "./engine/3d/index.js";
+```
+
+#### 2. Importação Modular 2D (Recomendado para 2D)
+```js
+import { Engine } from "./engine/index.js";
+import { Transform2D, Sprite, Collider2D, RenderSystem2D } from "./engine/2d/index.js";
+```
+
+---
+
+## O que foi Adicionado / Melhorias no 3D
+
+1. **Suporte a Novas Primitivas Geométricas em `Mesh3D`**:
+   - `Mesh3D.createSphere(radius, latitudeBands, longitudeBands, color)`
+   - `Mesh3D.createCylinder(radius, height, segments, color)`
+   - `Mesh3D.createTorus(radius, tube, radialSegments, tubularSegments, color)`
+   - `Mesh3D.createCube(size, color)` e `Mesh3D.createPlane(width, depth, color)` com Coordenadas UV.
+
+2. **Sistema de Materiais e Texturas (`Material3D`)**:
+   - Mapeamento UV e aplicação de texturas 2D (`WebGLTexture`).
+   - Gerador procedural de textura de tabuleiro de xadrez (`Material3D.createCheckerboardTexture()`).
+   - Parâmetros para cor especular e brilho Phong (`shininess`).
+
+3. **Iluminação Avançada e Múltiplas Fontes**:
+   - Modelo de reflexão Blinn-Phong com realces especulares.
+   - Luzes **Direcionais**, **Ambiente** e **Pontuais** com atenuação por distância.
+
+4. **Interatividade por Mouse (`Raycaster3D`)**:
+   - Conversão de coordenadas do mouse na tela para um raio no espaço 3D (Raycasting).
+   - Teste de intersecção com objetos e caixas de colisão `Collider3D` para seleção ou clique.
+
+5. **Controle da Câmera via Mouse (`OrbitControls3D`)**:
+   - Rotação orbital ao arrastar o mouse e zoom por rolagem da roda do mouse.
+
+6. **Sistema de Partículas 3D WebGL (`ParticleSystem3D`)**:
+   - Emissão de partículas no espaço 3D com física de gravidade, esvanecimento de cor e explosões dinâmicas (`burst()`).
+
+7. **Ambiente / Skybox (`Skybox3D`)**:
+   - Renderização de caixa de céu 3D de fundo.
+
+8. **Carregador de Modelos 3D (`OBJLoader3D`)**:
+   - Parser nativo para arquivos `.obj` de modeladores 3D como Blender.
+
+---
+
+## Exemplo de Uso 3D
+
+```js
+import { Engine } from "./engine/index.js";
+import { Transform3D, Mesh3D, Material3D, Skybox3D, ParticleSystem3D } from "./engine/3d/index.js";
+
+const canvas = document.getElementById("gameCanvas3D");
+const engine = new Engine(canvas, { mode: "3d", fov: 60 });
+
+const scene = engine.currentScene;
+```
+
+---
+
+## Demos Disponíveis
+
+- `gameDemo/` - Demo jogável 2D Canvas
+- `game3D/` - Demo jogável WebGL 3D interativa
