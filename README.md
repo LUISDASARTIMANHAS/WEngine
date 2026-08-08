@@ -77,3 +77,40 @@ WEngine
     └── scenes
         └── TestScene3D.js
 ```
+
+## Teste em tempo real
+
+A WEngine possui uma versão publicada para testes diretamente no navegador. É possível executar as demonstrações sem precisar clonar o repositório ou configurar um ambiente de desenvolvimento local.
+
+### Playground da WEngine
+
+**Teste a engine em tempo real:**
+
+https://luisdasartimanhas.github.io/WEngine/
+
+A publicação permite testar diretamente as implementações atuais da engine e acompanhar a evolução dos sistemas de renderização, entidades, componentes, física e gameplay.
+
+### Demonstrações disponíveis
+
+As demonstrações são organizadas em diretórios específicos do projeto:
+
+| Demonstração  | Caminho     | Descrição                                                     |
+| ------------- | ----------- | ------------------------------------------------------------- |
+| **Game Demo** | `gameDemo/` | Demonstração do sistema 2D original da WEngine                |
+| **Game 3D**   | `game3D/`   | Demonstração jogável utilizando o sistema 3D com WebGL nativo |
+
+### Teste diretamente as demos
+
+**Game 3D**
+
+https://luisdasartimanhas.github.io/WEngine/game3D/
+
+Demonstração dos recursos 3D da engine, incluindo câmera perspectiva, movimentação, iluminação, malhas, transformações e colisões.
+
+**Game Demo 2D**
+
+https://luisdasartimanhas.github.io/WEngine/gameDemo/
+
+Demonstração do sistema 2D original da WEngine e de sua arquitetura de gameplay baseada em entidades e componentes.
+
+> As demos são parte do próprio projeto e servem como ambientes de teste para validar os recursos implementados na engine em condições reais de execução no navegador.
