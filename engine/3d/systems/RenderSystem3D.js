@@ -382,7 +382,7 @@ export class RenderSystem3D {
         const modelMatrix = skyTransform.getModelMatrix();
         gl.uniformMatrix4fv(this.locations.uModelMatrix, false, modelMatrix.elements);
         gl.uniform4fv(this.locations.uColor, skybox.topColor);
-        gl.uniform1b(this.locations.uUseTexture, false);
+        gl.uniform1i(this.locations.uUseTexture, 0);
 
         const buffers = this.getOrCreateBuffers(skybox.mesh);
         gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vbo);
@@ -440,7 +440,7 @@ export class RenderSystem3D {
           useTex = true;
         }
       }
-      gl.uniform1b(this.locations.uUseTexture, useTex);
+      gl.uniform1i(this.locations.uUseTexture, useTex ? 1 : 0);
 
       const buffers = this.getOrCreateBuffers(mesh);
 
