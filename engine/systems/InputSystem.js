@@ -60,7 +60,11 @@ export class InputSystem {
    * @returns {boolean}
    */
   static isKeyDown(key) {
-    return InputSystem.keys.has(key);
+    if (typeof key !== "string") {
+      return false;
+    }
+
+    return InputSystem.keys.has(key.toLowerCase());
   }
 
   /**

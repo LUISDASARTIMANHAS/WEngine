@@ -51,14 +51,16 @@ export class TestScene3D extends Scene {
     }));
     this.addEntity(pointLight);
 
-    // 3. Chão 3D com Textura Xadrez Procedural
-    const ground = new Entity("TexturedGround");
+    // 3. Chão 3D com Textura de Grama
+    const ground = new Entity("GrassGround");
     ground.add(new Transform3D(0, 0, 0));
-    ground.add(Mesh3D.createPlane(50, 50, [0.3, 0.35, 0.4, 1.0]));
+    ground.add(Mesh3D.createPlane(50, 50, [0.15, 0.45, 0.15, 1.0]));
     ground.add(new Material3D({
-      texture: Material3D.createCheckerboardTexture(256, "#1e293b", "#334155"),
+      color: [1.0, 1.0, 1.0, 1.0],
+      texture: Material3D.createGrassTexture(512, "#2f6a2b", "#4e8a3f"),
       useTexture: true,
-      shininess: 16,
+      doubleSided: true,
+      shininess: 12,
     }));
     ground.add(new Collider3D({ width: 50, height: 0.1, depth: 50, isStatic: true }));
     this.addEntity(ground);

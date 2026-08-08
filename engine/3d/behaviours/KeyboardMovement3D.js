@@ -12,10 +12,10 @@ export class KeyboardMovement3D extends Component {
   /**
    * @param {number} [speed=5] Velocidade de movimento
    * @param {number} [jumpForce=7] Força de pulo
-   * @param {number} [groundDrag=0.85] Drag enquanto no chão
-   * @param {number} [airDrag=0.95] Drag enquanto no ar
+   * @param {number} [groundDrag=0.15] Drag enquanto no chão
+   * @param {number} [airDrag=0.08] Drag enquanto no ar
    */
-  constructor(speed = 5, jumpForce = 7, groundDrag = 0.85, airDrag = 0.95) {
+  constructor(speed = 5, jumpForce = 7, groundDrag = 0.15, airDrag = 0.08) {
     super();
     this.speed = speed;
     this.jumpForce = jumpForce;
@@ -43,15 +43,21 @@ export class KeyboardMovement3D extends Component {
     let moveX = 0;
     let moveZ = 0;
 
-    // Verificar todas as combinações possíveis de teclas
-    if (InputSystem.isKeyDown("keyw") || InputSystem.isKeyDown("arrowup")) moveZ -= 1;
-    if (InputSystem.isKeyDown("keys") || InputSystem.isKeyDown("arrowdown")) moveZ += 1;
-    if (InputSystem.isKeyDown("keya") || InputSystem.isKeyDown("arrowleft")) moveX -= 1;
-    if (InputSystem.isKeyDown("keyd") || InputSystem.isKeyDown("arrowright")) moveX += 1;
+    const forwardKeys = ["w", "keyw", "arrowup"];
+    const backKeys = ["s", "keys", "arrowdown"];
+    const leftKeys = ["a", "keya", "arrowleft"];
+    const rightKeys = ["d", "keyd", "arrowright"];
+    const jumpKeys = ["space", " "];
+    const descendKeys = ["shift", "shiftleft", "shiftright"];
+
+    if (this.#isAnyKeyDown(forwardKeys)) moveZ -= 1;
+    if (this.#isAnyKeyDown(backKeys)) moveZ += 1;
+    if (this.#isAnyKeyDown(leftKeys)) moveX -= 1;
+    if (this.#isAnyKeyDown(rightKeys)) moveX += 1;
 
     // Debug: mostrar teclas pressionadas no console (throttle para não spammar)
     if ((moveX !== 0 || moveZ !== 0) && Math.random() < 0.05) {
-      console.log(`[Movement3D] Keys: W=${InputSystem.isKeyDown("keyw")}, S=${InputSystem.isKeyDown("keys")}, A=${InputSystem.isKeyDown("keya")}, D=${InputSystem.isKeyDown("keyd")}, Space=${InputSystem.isKeyDown("space")}`);
+      console.log(`[Movement3D] Keys: W=${this.#isAnyKeyDown(forwardKeys)}, S=${this.#isAnyKeyDown(backKeys)}, A=${this.#isAnyKeyDown(leftKeys)}, D=${this.#isAnyKeyDown(rightKeys)}, Space=${this.#isAnyKeyDown(jumpKeys)}, Shift=${this.#isAnyKeyDown(descendKeys)}`);
     }
 
     // Normalizar vetor de movimento
@@ -73,10 +79,24 @@ export class KeyboardMovement3D extends Component {
     }
 
     // Pulo (ESPAÇO)
-    if (InputSystem.isKeyDown("space") && this.isGrounded) {
+    if (this.#isAnyKeyDown(jumpKeys) && this.isGrounded) {
       velocity.velocity.y = this.jumpForce;
       this.isGrounded = false;
     }
+
+    // Descer / controlar altura com Shift
+    if (this.#isAnyKeyDown(descendKeys)) {
+      velocity.addForce(new Vector3(0, -this.speed * 0.7, 0));
+    }
+  }
+
+  /**
+   * Verifica se alguma tecla da lista está pressionada.
+   * @param {string[]} keys
+   * @returns {boolean}
+   */
+  #isAnyKeyDown(keys) {
+    return keys.some((key) => InputSystem.isKeyDown(key));
   }
 
   /**
@@ -89,16 +109,38 @@ export class KeyboardMovement3D extends Component {
       return;
     }
 
-    const bounds = collider.getBounds(transform);
-    const rayStart = bounds.min.y - this.groundThreshold;
-    const rayEnd = bounds.min.y;
+    const scene = this.entity?.scene;
+    if (!scene) {
+      this.isGrounded = false;
+      return;
+    }
 
-    // Verificar se há colisão abaixo do objeto
-    // Simples: objetos estáticos abaixo indicam que está no chão
+    const bounds = collider.getBounds(transform);
+    const myBottom = bounds.min.y;
+    const tolerance = this.groundThreshold + 0.02;
     this.isGrounded = false;
 
-    // Usar uma pequena margem para detecção de chão
-    if (Math.abs(transform.position.y - this.lastGroundY) < this.groundThreshold) {
+    for (const otherEntity of scene.entities) {
+      if (otherEntity === this.entity || !otherEntity.active || otherEntity.destroyed) continue;
+
+      const otherCollider = otherEntity.getComponent(Collider3D);
+      const otherTransform = otherEntity.getComponent(Transform3D);
+      if (!otherCollider || !otherTransform || !otherCollider.isStatic) continue;
+
+      const otherBounds = otherCollider.getBounds(otherTransform);
+      const overlapX = bounds.max.x >= otherBounds.min.x && bounds.min.x <= otherBounds.max.x;
+      const overlapZ = bounds.max.z >= otherBounds.min.z && bounds.min.z <= otherBounds.max.z;
+
+      if (!overlapX || !overlapZ) continue;
+
+      const verticalGap = myBottom - otherBounds.max.y;
+      if (verticalGap >= 0 && verticalGap <= tolerance) {
+        this.isGrounded = true;
+        break;
+      }
+    }
+
+    if (!this.isGrounded && Math.abs(transform.position.y - this.lastGroundY) < this.groundThreshold) {
       this.isGrounded = true;
     }
 

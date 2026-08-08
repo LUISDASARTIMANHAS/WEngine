@@ -20,6 +20,7 @@ export class Material3D extends Component {
     texture = null,
     useTexture = false,
     wireframe = false,
+    doubleSided = false,
   } = {}) {
     super();
     this.color = color;
@@ -28,6 +29,7 @@ export class Material3D extends Component {
     this.texture = texture;
     this.useTexture = useTexture || Boolean(texture);
     this.wireframe = wireframe;
+    this.doubleSided = doubleSided;
   }
 
   /**
@@ -49,6 +51,39 @@ export class Material3D extends Component {
         ctx.fillStyle = (x + y) % 2 === 0 ? color1 : color2;
         ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
       }
+    }
+
+    return canvas;
+  }
+
+  /**
+   * Gera uma textura de grama estilizada usando tons de verde.
+   * @param {number} [size=512]
+   * @param {string} [color1="#3b7a2f"]
+   * @param {string} [color2="#5ea24a"]
+   * @returns {HTMLCanvasElement}
+   */
+  static createGrassTexture(size = 512, color1 = "#3b7a2f", color2 = "#5ea24a") {
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+
+    const tileSize = size / 16;
+    for (let y = 0; y < 16; y++) {
+      for (let x = 0; x < 16; x++) {
+        ctx.fillStyle = (x + y) % 2 === 0 ? color1 : color2;
+        ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+      }
+    }
+
+    ctx.fillStyle = "rgba(255,255,255,0.04)";
+    for (let i = 0; i < 400; i++) {
+      const x = Math.random() * size;
+      const y = Math.random() * size;
+      const w = 1 + Math.random() * 2;
+      const h = 8 + Math.random() * 10;
+      ctx.fillRect(x, y, w, h);
     }
 
     return canvas;

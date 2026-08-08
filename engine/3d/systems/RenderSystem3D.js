@@ -442,6 +442,12 @@ export class RenderSystem3D {
       }
       gl.uniform1i(this.locations.uUseTexture, useTex ? 1 : 0);
 
+      const shouldDisableCull = material && material.doubleSided;
+      const wasCullEnabled = gl.isEnabled(gl.CULL_FACE);
+      if (shouldDisableCull) {
+        gl.disable(gl.CULL_FACE);
+      }
+
       const buffers = this.getOrCreateBuffers(mesh);
 
       // VBO
@@ -469,6 +475,10 @@ export class RenderSystem3D {
         gl.drawElements(gl.TRIANGLES, buffers.indexCount, gl.UNSIGNED_SHORT, 0);
       } else {
         gl.drawArrays(gl.TRIANGLES, 0, buffers.vertexCount);
+      }
+
+      if (shouldDisableCull && wasCullEnabled) {
+        gl.enable(gl.CULL_FACE);
       }
     }
 

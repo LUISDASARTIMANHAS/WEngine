@@ -86,6 +86,12 @@ export class Mesh3D extends Component {
     const hd = depth / 2;
 
     const vertices = new Float32Array([
+      // Top face
+      -hw, 0, -hd,
+       hw, 0, -hd,
+       hw, 0,  hd,
+      -hw, 0,  hd,
+      // Bottom face
       -hw, 0, -hd,
        hw, 0, -hd,
        hw, 0,  hd,
@@ -93,10 +99,16 @@ export class Mesh3D extends Component {
     ]);
 
     const normals = new Float32Array([
+      // Top normals
       0, 1, 0,
       0, 1, 0,
       0, 1, 0,
       0, 1, 0,
+      // Bottom normals
+      0, -1, 0,
+      0, -1, 0,
+      0, -1, 0,
+      0, -1, 0,
     ]);
 
     const uvs = new Float32Array([
@@ -104,11 +116,19 @@ export class Mesh3D extends Component {
       1, 0,
       1, 1,
       0, 1,
+      0, 0,
+      1, 0,
+      1, 1,
+      0, 1,
     ]);
 
     const indices = new Uint16Array([
+      // Top face (visível de cima)
       0, 1, 2,
       0, 2, 3,
+      // Bottom face (visível de baixo)
+      4, 6, 5,
+      4, 7, 6,
     ]);
 
     return new Mesh3D({ vertices, normals, uvs, indices, color });
