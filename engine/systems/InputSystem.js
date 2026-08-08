@@ -19,28 +19,39 @@ export class InputSystem {
     InputSystem.logger = logger;
 
     window.addEventListener("keydown", (event) => {
-      InputSystem.keys.add(event.key.toLowerCase());
+      const keyCode = event.code.toLowerCase();
+      const keyName = event.key.toLowerCase();
+      
+      // Adicionar ambas as formas: "keya" e "a"
+      InputSystem.keys.add(keyCode);
+      InputSystem.keys.add(keyName);
 
       InputSystem.logger?.debugThrottle(
-        `input-keydown-${event.key.toLowerCase()}`,
+        `input-keydown-${keyCode}`,
         200,
         "input",
         "Tecla pressionada.",
         {
-          key: event.key.toLowerCase()
+          key: keyCode
         }
       );
     });
 
     window.addEventListener("keyup", (event) => {
-      InputSystem.keys.delete(event.key.toLowerCase());
+      const keyCode = event.code.toLowerCase();
+      const keyName = event.key.toLowerCase();
+      
+      // Remover ambas as formas
+      InputSystem.keys.delete(keyCode);
+      InputSystem.keys.delete(keyName);
 
       InputSystem.logger?.debug("input", "Tecla liberada.", {
-        key: event.key.toLowerCase()
+        key: keyCode
       });
     });
 
     InputSystem.logger?.info("input", "Sistema de input inicializado.");
+    console.log("[WEngine] InputSystem inicializado - Pronto para capturar teclado");
   }
 
   /**
@@ -49,6 +60,22 @@ export class InputSystem {
    * @returns {boolean}
    */
   static isKeyDown(key) {
-    return InputSystem.keys.has(key.toLowerCase());
+    return InputSystem.keys.has(key);
+  }
+
+  /**
+   * Retorna todas as teclas pressionadas.
+   * @returns {string[]}
+   */
+  static getPressedKeys() {
+    return Array.from(InputSystem.keys);
+  }
+
+  /**
+   * Exibe as teclas pressionadas no console.
+   * @returns {void}
+   */
+  static debugKeys() {
+    console.log("[InputSystem] Teclas pressionadas:", InputSystem.getPressedKeys());
   }
 }

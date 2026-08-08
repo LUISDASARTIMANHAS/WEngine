@@ -12,7 +12,7 @@ export class ErrorDisplaySystem {
 
     /**
      * Lista de erros armazenados.
-     * @type {Array<{message: string, stack: string, timestamp: number}>}
+     * @type {Array<{message: string, source: string, stack: string, timestamp: number, type: string, id: number}>}
      */
     this.errors = [];
 
@@ -20,7 +20,25 @@ export class ErrorDisplaySystem {
      * Limite máximo de erros exibidos.
      * @type {number}
      */
-    this.maxErrors = 10;
+    this.maxErrors = 20;
+
+    /**
+     * Contador de IDs única para erros.
+     * @type {number}
+     */
+    this.errorIdCounter = 0;
+
+    /**
+     * Modo expandido (mostrar stack traces completos).
+     * @type {boolean}
+     */
+    this.expandedMode = false;
+
+    /**
+     * Filtro ativo (null = todos, 'error', 'warning', 'info').
+     * @type {string|null}
+     */
+    this.activeFilter = null;
 
     this.init();
   }
@@ -34,11 +52,11 @@ export class ErrorDisplaySystem {
   }
 
   /**
-   * Cria o painel de erros no DOM.
+   * Cria o painel de erros no DOM com UI melhorada.
    * @private
    */
   createErrorPanel() {
-    // Cria o contêiner principal do painel
+    // Contêiner principal
     this.errorPanel = document.createElement("div");
     this.errorPanel.id = "wengine-error-panel";
     this.errorPanel.style.cssText = `
@@ -46,65 +64,154 @@ export class ErrorDisplaySystem {
       bottom: 0;
       right: 0;
       width: 100%;
-      max-width: 600px;
-      max-height: 300px;
-      background: rgba(20, 20, 25, 0.95);
+      max-width: 700px;
+      max-height: 400px;
+      background: rgba(15, 15, 20, 0.98);
       border: 2px solid #ff4444;
       border-radius: 8px;
-      padding: 12px;
+      padding: 0;
       font-family: 'Courier New', monospace;
       font-size: 12px;
       color: #ff9999;
       z-index: 10000;
-      overflow-y: auto;
       display: none;
-      box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+      box-shadow: 0 0 30px rgba(255, 68, 68, 0.4);
       margin: 10px;
+      display: flex;
+      flex-direction: column;
     `;
 
-    // Cria o header do painel
+    // Header com controles
     const header = document.createElement("div");
+    header.id = "wengine-error-header";
     header.style.cssText = `
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #ff4444;
-      font-weight: bold;
-      color: #ff6666;
-    `;
-    header.innerHTML = `
-      <span>⚠ WEngine Error Display</span>
-      <button id="wengine-error-clear" style="
-        background: #ff4444;
-        color: white;
-        border: none;
-        padding: 4px 8px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 11px;
-        font-weight: bold;
-      ">Clear</button>
+      padding: 10px 12px;
+      border-bottom: 2px solid #ff4444;
+      background: rgba(40, 15, 15, 0.8);
+      gap: 8px;
+      flex-wrap: wrap;
     `;
 
-    // Cria o container de mensagens
+    // Título com contador
+    const title = document.createElement("div");
+    title.style.cssText = `
+      font-weight: bold;
+      color: #ff6666;
+      flex: 1;
+      min-width: 200px;
+    `;
+    title.innerHTML = `⚠ <span id="wengine-error-title">WEngine Errors</span> <span id="wengine-error-count" style="background: #ff4444; color: white; padding: 2px 6px; border-radius: 3px; margin-left: 8px;">0</span>`;
+
+    // Controles
+    const controls = document.createElement("div");
+    controls.style.cssText = `
+      display: flex;
+      gap: 6px;
+    `;
+
+    // Botão de filtro
+    const filterBtn = document.createElement("button");
+    filterBtn.id = "wengine-error-filter";
+    filterBtn.textContent = "Filter";
+    filterBtn.style.cssText = `
+      background: #444455;
+      color: #aaaaaa;
+      border: 1px solid #666677;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: bold;
+      transition: all 0.2s;
+    `;
+    filterBtn.onmouseover = () => { filterBtn.style.background = "#555566"; };
+    filterBtn.onmouseout = () => { filterBtn.style.background = "#444455"; };
+
+    // Botão expandir
+    const expandBtn = document.createElement("button");
+    expandBtn.id = "wengine-error-expand";
+    expandBtn.textContent = "Expand";
+    expandBtn.style.cssText = `
+      background: #444455;
+      color: #aaaaaa;
+      border: 1px solid #666677;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: bold;
+      transition: all 0.2s;
+    `;
+    expandBtn.onmouseover = () => { expandBtn.style.background = "#555566"; };
+    expandBtn.onmouseout = () => { expandBtn.style.background = "#444455"; };
+    expandBtn.addEventListener("click", () => this.toggleExpandMode(expandBtn));
+
+    // Botão limpar
+    const clearBtn = document.createElement("button");
+    clearBtn.id = "wengine-error-clear";
+    clearBtn.textContent = "Clear";
+    clearBtn.style.cssText = `
+      background: #ff4444;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: bold;
+      transition: all 0.2s;
+    `;
+    clearBtn.onmouseover = () => { clearBtn.style.background = "#ff6666"; };
+    clearBtn.onmouseout = () => { clearBtn.style.background = "#ff4444"; };
+    clearBtn.addEventListener("click", () => this.clearErrors());
+
+    controls.appendChild(filterBtn);
+    controls.appendChild(expandBtn);
+    controls.appendChild(clearBtn);
+
+    header.appendChild(title);
+    header.appendChild(controls);
+
+    // Container de mensagens com scroll
     const messagesContainer = document.createElement("div");
     messagesContainer.id = "wengine-error-messages";
     messagesContainer.style.cssText = `
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
+    `;
+
+    // Stats footer
+    const footer = document.createElement("div");
+    footer.id = "wengine-error-stats";
+    footer.style.cssText = `
+      padding: 6px 12px;
+      border-top: 1px solid #333344;
+      background: rgba(30, 10, 10, 0.8);
+      font-size: 10px;
+      color: #ff8888;
+      display: flex;
+      gap: 12px;
+    `;
+    footer.innerHTML = `
+      <span>🔴 <span id="wengine-error-count-error">0</span> Errors</span>
+      <span>🟡 <span id="wengine-error-count-warning">0</span> Warnings</span>
+      <span>🔵 <span id="wengine-error-count-info">0</span> Info</span>
     `;
 
     this.errorPanel.appendChild(header);
     this.errorPanel.appendChild(messagesContainer);
+    this.errorPanel.appendChild(footer);
     document.body.appendChild(this.errorPanel);
 
-    // Event listener para limpar erros
-    document.getElementById("wengine-error-clear").addEventListener("click", () => {
-      this.clearErrors();
-    });
+    // Event listener para filtro
+    filterBtn.addEventListener("click", () => this.cycleFilter(filterBtn));
   }
 
   /**
@@ -114,7 +221,7 @@ export class ErrorDisplaySystem {
   setupGlobalErrorHandlers() {
     // Captura erros não tratados
     window.addEventListener("error", (event) => {
-      this.addError(event.message, event.filename + ":" + event.lineno, event.error?.stack);
+      this.addError(event.message, event.filename + ":" + event.lineno, event.error?.stack, "error");
     });
 
     // Captura promessas rejeitadas não tratadas
@@ -122,7 +229,8 @@ export class ErrorDisplaySystem {
       this.addError(
         "Unhandled Promise Rejection",
         event.reason?.message || String(event.reason),
-        event.reason?.stack
+        event.reason?.stack,
+        "error"
       );
     });
   }
@@ -132,13 +240,16 @@ export class ErrorDisplaySystem {
    * @param {string} message - Mensagem de erro
    * @param {string} [source="Unknown"] - Origem do erro
    * @param {string} [stack=""] - Stack trace do erro
+   * @param {string} [type="error"] - Tipo (error, warning, info)
    */
-  addError(message, source = "Unknown", stack = "") {
+  addError(message, source = "Unknown", stack = "", type = "error") {
     const error = {
+      id: this.errorIdCounter++,
       message,
       source,
       stack,
       timestamp: Date.now(),
+      type: type.toLowerCase(),
     };
 
     this.errors.push(error);
@@ -152,6 +263,42 @@ export class ErrorDisplaySystem {
   }
 
   /**
+   * Alterna o modo expandido.
+   * @private
+   */
+  toggleExpandMode(button) {
+    this.expandedMode = !this.expandedMode;
+    button.textContent = this.expandedMode ? "Compact" : "Expand";
+    button.style.background = this.expandedMode ? "#556655" : "#444455";
+    this.renderErrors();
+  }
+
+  /**
+   * Cicla através dos filtros.
+   * @private
+   */
+  cycleFilter(button) {
+    const filters = [null, "error", "warning", "info"];
+    const currentIndex = filters.indexOf(this.activeFilter);
+    this.activeFilter = filters[(currentIndex + 1) % filters.length];
+
+    const labels = ["All", "Errors", "Warnings", "Info"];
+    button.textContent = labels[filters.indexOf(this.activeFilter)];
+    button.style.background = this.activeFilter ? "#665555" : "#444455";
+
+    this.renderErrors();
+  }
+
+  /**
+   * Retorna erros filtrados.
+   * @private
+   */
+  getFilteredErrors() {
+    if (!this.activeFilter) return this.errors;
+    return this.errors.filter(e => e.type === this.activeFilter);
+  }
+
+  /**
    * Renderiza os erros no painel.
    * @private
    */
@@ -159,41 +306,132 @@ export class ErrorDisplaySystem {
     const messagesContainer = document.getElementById("wengine-error-messages");
     if (!messagesContainer) return;
 
+    const filtered = this.getFilteredErrors();
     messagesContainer.innerHTML = "";
 
-    for (const error of this.errors) {
-      const errorElement = document.createElement("div");
-      errorElement.style.cssText = `
-        background: rgba(50, 20, 20, 0.8);
-        border-left: 3px solid #ff4444;
-        padding: 6px 8px;
-        border-radius: 3px;
-        margin-bottom: 4px;
-        line-height: 1.4;
+    // Atualizar contador
+    const countBadge = document.getElementById("wengine-error-count");
+    if (countBadge) countBadge.textContent = this.errors.length;
+
+    // Atualizar estatísticas
+    const stats = { error: 0, warning: 0, info: 0 };
+    for (const err of this.errors) {
+      stats[err.type]++;
+    }
+    document.getElementById("wengine-error-count-error").textContent = stats.error;
+    document.getElementById("wengine-error-count-warning").textContent = stats.warning;
+    document.getElementById("wengine-error-count-info").textContent = stats.info;
+
+    if (filtered.length === 0) {
+      const emptyMsg = document.createElement("div");
+      emptyMsg.style.cssText = `
+        padding: 20px;
+        text-align: center;
+        color: #888888;
       `;
+      emptyMsg.textContent = this.activeFilter 
+        ? `No ${this.activeFilter}s to display`
+        : "No errors yet";
+      messagesContainer.appendChild(emptyMsg);
+      return;
+    }
 
-      const time = new Date(error.timestamp).toLocaleTimeString();
-      const shortStack = error.stack
-        ?.split("\n")
-        .slice(0, 2)
-        .join("\n")
-        .substring(0, 200) || "";
-
-      errorElement.innerHTML = `
-        <div style="color: #ffaaaa; font-weight: bold;">${error.message}</div>
-        <div style="color: #ff8888; font-size: 10px;">${error.source}</div>
-        ${shortStack ? `<div style="color: #ff6666; font-size: 10px; margin-top: 2px;">${this.escapeHtml(shortStack)}</div>` : ""}
-        <div style="color: #ff5555; font-size: 9px; margin-top: 2px;">${time}</div>
-      `;
-
+    for (const error of filtered) {
+      const errorElement = this.createErrorElement(error);
       messagesContainer.appendChild(errorElement);
     }
 
-    // Mostra o painel se houver erros
-    this.errorPanel.style.display = this.errors.length > 0 ? "block" : "none";
+    // Mostrar/ocultar painel
+    this.errorPanel.style.display = this.errors.length > 0 ? "flex" : "none";
 
     // Scroll para o último erro
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  /**
+   * Cria um elemento de erro HTML.
+   * @private
+   */
+  createErrorElement(error) {
+    const colors = {
+      error: { border: "#ff4444", bg: "rgba(60, 15, 15, 0.9)", text: "#ffaaaa", icon: "🔴" },
+      warning: { border: "#ffaa00", bg: "rgba(60, 45, 0, 0.9)", text: "#ffdd88", icon: "🟡" },
+      info: { border: "#4488ff", bg: "rgba(15, 30, 60, 0.9)", text: "#88ccff", icon: "🔵" },
+    };
+    const color = colors[error.type] || colors.error;
+
+    const container = document.createElement("div");
+    container.style.cssText = `
+      background: ${color.bg};
+      border-left: 4px solid ${color.border};
+      padding: 8px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+    `;
+    container.onmouseover = () => { container.style.background = color.bg.replace("0.9", "1.0"); };
+    container.onmouseout = () => { container.style.background = color.bg; };
+
+    const time = new Date(error.timestamp).toLocaleTimeString();
+    const hasStack = error.stack && error.stack.length > 0;
+
+    // Título
+    const title = document.createElement("div");
+    title.style.cssText = `
+      color: ${color.text};
+      font-weight: bold;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    `;
+    title.innerHTML = `${color.icon} <span>${this.escapeHtml(error.message)}</span>`;
+
+    container.appendChild(title);
+
+    // Origem
+    const source = document.createElement("div");
+    source.style.cssText = `
+      color: ${color.text.replace("aa", "88")};
+      font-size: 10px;
+      margin-bottom: 3px;
+    `;
+    source.textContent = error.source;
+    container.appendChild(source);
+
+    // Stack trace (expandido ou compacto)
+    if (hasStack) {
+      const stackLines = error.stack.split("\n").filter(l => l.trim());
+      const displayLines = this.expandedMode ? stackLines : stackLines.slice(0, 1);
+
+      const stack = document.createElement("div");
+      stack.style.cssText = `
+        color: ${color.text.replace("aa", "66")};
+        font-size: 9px;
+        margin-top: 4px;
+        padding: 4px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 2px;
+        max-height: ${this.expandedMode ? "200px" : "40px"};
+        overflow: hidden;
+        white-space: pre-wrap;
+        word-break: break-word;
+      `;
+      stack.textContent = displayLines.join("\n");
+      container.appendChild(stack);
+    }
+
+    // Timestamp
+    const timestamp = document.createElement("div");
+    timestamp.style.cssText = `
+      color: ${color.text.replace("aa", "55")};
+      font-size: 9px;
+      margin-top: 4px;
+    `;
+    timestamp.textContent = time;
+    container.appendChild(timestamp);
+
+    return container;
   }
 
   /**
@@ -235,6 +473,14 @@ export class ErrorDisplaySystem {
    */
   getAllErrors() {
     return [...this.errors];
+  }
+
+  /**
+   * Exporta erros como JSON.
+   * @returns {string}
+   */
+  exportErrors() {
+    return JSON.stringify(this.errors, null, 2);
   }
 
   /**

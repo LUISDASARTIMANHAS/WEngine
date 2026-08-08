@@ -4,6 +4,7 @@ import { RenderSystem } from "../systems/RenderSystem.js";
 import { RenderSystem3D } from "../systems/RenderSystem3D.js";
 import { CollisionSystem } from "../systems/CollisionSystem.js";
 import { CollisionSystem3D } from "../systems/CollisionSystem3D.js";
+import { PhysicsSystem3D } from "../3d/systems/PhysicsSystem3D.js";
 import { DamageSystem } from "../systems/DamageSystem.js";
 import { CleanupSystem } from "../systems/CleanupSystem.js";
 import { Time } from "../utils/Time.js";
@@ -115,6 +116,12 @@ export class Engine {
      */
     this.collisionSystem = new CollisionSystem();
     this.collisionSystem3D = new CollisionSystem3D();
+
+    /**
+     * Sistema de física 3D.
+     * @type {PhysicsSystem3D}
+     */
+    this.physicsSystem3D = new PhysicsSystem3D();
 
     /**
      * Sistema de dano.
@@ -242,6 +249,12 @@ export class Engine {
     this.currentScene.update(deltaTime);
     const updateEnd = performance.now();
 
+    const physicsStart = performance.now();
+    if (this.mode === "3d") {
+      this.physicsSystem3D.update(this.currentScene, deltaTime);
+    }
+    const physicsEnd = performance.now();
+
     const collisionStart = performance.now();
     if (this.mode === "3d") {
       this.collisionSystem3D.resolve(this.currentScene);
@@ -293,6 +306,7 @@ export class Engine {
         deltaTime,
         totalFrameMs: Number((frameEnd - frameStart).toFixed(3)),
         updateMs: Number((updateEnd - updateStart).toFixed(3)),
+        physicsMs: Number((physicsEnd - physicsStart).toFixed(3)),
         collisionMs: Number((collisionEnd - collisionStart).toFixed(3)),
         damageMs: Number((damageEnd - damageStart).toFixed(3)),
         cameraMs: Number((cameraEnd - cameraStart).toFixed(3)),

@@ -1,5 +1,5 @@
 import { Engine, InputSystem } from "../engine/index.js";
-import { Raycaster3D, ParticleSystem3D } from "../engine/3d/index.js";
+import { Raycaster3D, ParticleSystem3D, OrbitControls3D } from "../engine/3d/index.js";
 import { register3DBuilders } from "./register3DBuilders.js";
 import { TestScene3D } from "./scenes/TestScene3D.js";
 
@@ -26,6 +26,9 @@ register3DBuilders(engine);
 
 const scene = new TestScene3D();
 engine.setScene(scene);
+
+// Inicializa Controles de Câmera Orbitais com Mouse
+const orbitControls = new OrbitControls3D(engine.camera3D, canvas);
 
 // Raycaster 3D para Interação por Clique de Mouse
 const raycaster = new Raycaster3D();
@@ -58,10 +61,56 @@ const fpsVal = document.getElementById("fps-val");
 const entityVal = document.getElementById("entity-val");
 const modeVal = document.getElementById("mode-val");
 
+// Debug de Input
+let inputDebugCounter = 0;
 engine.onDebug = (eng) => {
   if (fpsVal) fpsVal.textContent = eng.time.fps;
   if (entityVal) entityVal.textContent = eng.currentScene ? eng.currentScene.entities.length : 0;
   if (modeVal) modeVal.textContent = eng.mode.toUpperCase() + " (WebGL)";
+
+  // Debug de input a cada 60 frames
+  inputDebugCounter++;
+  if (inputDebugCounter >= 60) {
+    inputDebugCounter = 0;
+    const pressedKeys = InputSystem.getPressedKeys();
+    if (pressedKeys.length > 0) {
+      console.log("[Input Debug] Teclas pressionadas:", pressedKeys.join(", "));
+    }
+  }
 };
 
 engine.start();
+
+// ==================== INPUT DEBUG VISUAL ====================
+// Cria painel visual de debug para mostrar teclas pressionadas
+const inputDebugPanel = document.createElement("div");
+inputDebugPanel.id = "input-debug-panel";
+inputDebugPanel.style.cssText = `
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #00ff00;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 12px;
+  color: #00ff00;
+  z-index: 9999;
+  border-radius: 4px;
+`;
+
+setInterval(() => {
+  const keys = InputSystem.getPressedKeys();
+  if (keys.length > 0) {
+    inputDebugPanel.style.display = "block";
+    inputDebugPanel.innerHTML = `
+      <div style="font-weight: bold; margin-bottom: 5px;">🎮 Input Debug</div>
+      <div>Teclas: ${keys.join(", ")}</div>
+    `;
+  } else {
+    inputDebugPanel.style.display = "none";
+  }
+}, 100);
+
+document.body.appendChild(inputDebugPanel);
+// ============================================================
