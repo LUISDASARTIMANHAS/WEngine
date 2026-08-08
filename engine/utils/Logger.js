@@ -36,6 +36,26 @@ export class Logger {
      * @type {Map<string, number>}
      */
     this.throttleMap = new Map();
+
+    /**
+     * Callback opcional para eventos de log.
+     * @type {(entry: object) => void|null}
+     */
+    this.onLog = null;
+  }
+
+  /**
+   * Emite um evento de log opcional.
+   * @param {object} entry
+   */
+  emitLog(entry) {
+    if (typeof this.onLog === "function") {
+      try {
+        this.onLog(entry);
+      } catch (e) {
+        console.warn("Logger onLog callback failed:", e);
+      }
+    }
   }
 
   /**
@@ -69,6 +89,13 @@ export class Logger {
   info(category, message, ...details) {
     if (!this.shouldLog(category)) return;
     console.info(this.formatPrefix("info", category), message, ...details);
+    this.emitLog({
+      type: "info",
+      category,
+      message,
+      details,
+      timestamp: Date.now(),
+    });
   }
 
   /**
@@ -81,6 +108,13 @@ export class Logger {
   warn(category, message, ...details) {
     if (!this.shouldLog(category)) return;
     console.warn(this.formatPrefix("warn", category), message, ...details);
+    this.emitLog({
+      type: "warning",
+      category,
+      message,
+      details,
+      timestamp: Date.now(),
+    });
   }
 
   /**
@@ -93,6 +127,13 @@ export class Logger {
   error(category, message, ...details) {
     if (!this.shouldLog(category)) return;
     console.error(this.formatPrefix("error", category), message, ...details);
+    this.emitLog({
+      type: "error",
+      category,
+      message,
+      details,
+      timestamp: Date.now(),
+    });
   }
 
   /**
@@ -106,6 +147,13 @@ export class Logger {
     if (!this.debugEnabled) return;
     if (!this.shouldLog(category)) return;
     console.debug(this.formatPrefix("debug", category), message, ...details);
+    this.emitLog({
+      type: "debug",
+      category,
+      message,
+      details,
+      timestamp: Date.now(),
+    });
   }
 
   /**
@@ -130,6 +178,13 @@ export class Logger {
 
     this.throttleMap.set(key, now);
     console.debug(this.formatPrefix("debug", category), message, ...details);
+    this.emitLog({
+      type: "debug",
+      category,
+      message,
+      details,
+      timestamp: Date.now(),
+    });
   }
 
   /**

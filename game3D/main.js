@@ -60,6 +60,9 @@ canvas.addEventListener("click", (e) => {
 const fpsVal = document.getElementById("fps-val");
 const entityVal = document.getElementById("entity-val");
 const modeVal = document.getElementById("mode-val");
+const frameMsVal = document.getElementById("frame-ms-val");
+const renderMsVal = document.getElementById("render-ms-val");
+const updateMsVal = document.getElementById("update-ms-val");
 
 // Debug de Input
 let inputDebugCounter = 0;
@@ -67,6 +70,9 @@ engine.onDebug = (eng) => {
   if (fpsVal) fpsVal.textContent = eng.time.fps;
   if (entityVal) entityVal.textContent = eng.currentScene ? eng.currentScene.entities.length : 0;
   if (modeVal) modeVal.textContent = eng.mode.toUpperCase() + " (WebGL)";
+  if (frameMsVal) frameMsVal.textContent = eng.lastPerformanceMetrics ? eng.lastPerformanceMetrics.totalFrameMs : 0.0;
+  if (renderMsVal) renderMsVal.textContent = eng.lastPerformanceMetrics ? eng.lastPerformanceMetrics.renderMs : 0.0;
+  if (updateMsVal) updateMsVal.textContent = eng.lastPerformanceMetrics ? eng.lastPerformanceMetrics.updateMs : 0.0;
 
   // Debug de input a cada 60 frames
   inputDebugCounter++;

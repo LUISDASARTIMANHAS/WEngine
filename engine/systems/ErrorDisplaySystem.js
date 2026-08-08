@@ -35,7 +35,7 @@ export class ErrorDisplaySystem {
     this.expandedMode = false;
 
     /**
-     * Filtro ativo (null = todos, 'error', 'warning', 'info').
+     * Filtro ativo (null = todos, 'error', 'warning', 'info', 'debug').
      * @type {string|null}
      */
     this.activeFilter = null;
@@ -203,6 +203,7 @@ export class ErrorDisplaySystem {
       <span>🔴 <span id="wengine-error-count-error">0</span> Errors</span>
       <span>🟡 <span id="wengine-error-count-warning">0</span> Warnings</span>
       <span>🔵 <span id="wengine-error-count-info">0</span> Info</span>
+      <span>🟣 <span id="wengine-error-count-debug">0</span> Debug</span>
     `;
 
     this.errorPanel.appendChild(header);
@@ -240,7 +241,7 @@ export class ErrorDisplaySystem {
    * @param {string} message - Mensagem de erro
    * @param {string} [source="Unknown"] - Origem do erro
    * @param {string} [stack=""] - Stack trace do erro
-   * @param {string} [type="error"] - Tipo (error, warning, info)
+   * @param {string} [type="error"] - Tipo (error, warning, info, debug)
    */
   addError(message, source = "Unknown", stack = "", type = "error") {
     const error = {
@@ -263,6 +264,46 @@ export class ErrorDisplaySystem {
   }
 
   /**
+   * Adiciona um log ao painel de erros.
+   * @param {{type:string,category:string,message:string,details:any[],timestamp:number}} entry
+   */
+  addLog(entry) {
+    if (!entry || !entry.type || !entry.message) return;
+    const source = `logger:${entry.category || "unknown"}`;
+    const stack = Array.isArray(entry.details)
+      ? entry.details.map((d) => {
+          if (typeof d === "string") return d;
+          if (d instanceof Error) return d.stack || d.message;
+          try {
+            return JSON.stringify(d);
+          } catch (e) {
+            return String(d);
+          }
+        }).join(" ")
+      : String(entry.details || "");
+
+    this.addError(entry.message, source, stack, entry.type);
+  }
+
+  /**
+   * Adiciona um log arbitrário ao painel.
+   * @param {{type:string,category:string,message:string,details:any[],timestamp:number}} entry
+   */
+  addLog(entry) {
+    const source = `logger:${entry.category}`;
+    const stack = entry.details?.map((d) => {
+      if (typeof d === "string") return d;
+      try {
+        return JSON.stringify(d);
+      } catch (e) {
+        return String(d);
+      }
+    }).join(" ");
+
+    this.addError(entry.message, source, stack, entry.type || "debug");
+  }
+
+  /**
    * Alterna o modo expandido.
    * @private
    */
@@ -278,11 +319,11 @@ export class ErrorDisplaySystem {
    * @private
    */
   cycleFilter(button) {
-    const filters = [null, "error", "warning", "info"];
+    const filters = [null, "error", "warning", "info", "debug"];
     const currentIndex = filters.indexOf(this.activeFilter);
     this.activeFilter = filters[(currentIndex + 1) % filters.length];
 
-    const labels = ["All", "Errors", "Warnings", "Info"];
+    const labels = ["All", "Errors", "Warnings", "Info", "Debug"];
     button.textContent = labels[filters.indexOf(this.activeFilter)];
     button.style.background = this.activeFilter ? "#665555" : "#444455";
 
@@ -314,13 +355,16 @@ export class ErrorDisplaySystem {
     if (countBadge) countBadge.textContent = this.errors.length;
 
     // Atualizar estatísticas
-    const stats = { error: 0, warning: 0, info: 0 };
-    for (const err of this.errors) {
-      stats[err.type]++;
-    }
-    document.getElementById("wengine-error-count-error").textContent = stats.error;
-    document.getElementById("wengine-error-count-warning").textContent = stats.warning;
-    document.getElementById("wengine-error-count-info").textContent = stats.info;
+const stats = { error: 0, warning: 0, info: 0, debug: 0 };
+      for (const err of this.errors) {
+        if (stats.hasOwnProperty(err.type)) {
+          stats[err.type]++;
+        }
+      }
+      document.getElementById("wengine-error-count-error").textContent = stats.error;
+      document.getElementById("wengine-error-count-warning").textContent = stats.warning;
+      document.getElementById("wengine-error-count-info").textContent = stats.info;
+      document.getElementById("wengine-error-count-debug").textContent = stats.debug;
 
     if (filtered.length === 0) {
       const emptyMsg = document.createElement("div");
@@ -331,7 +375,7 @@ export class ErrorDisplaySystem {
       `;
       emptyMsg.textContent = this.activeFilter 
         ? `No ${this.activeFilter}s to display`
-        : "No errors yet";
+        : "No logs yet";
       messagesContainer.appendChild(emptyMsg);
       return;
     }
@@ -357,6 +401,7 @@ export class ErrorDisplaySystem {
       error: { border: "#ff4444", bg: "rgba(60, 15, 15, 0.9)", text: "#ffaaaa", icon: "🔴" },
       warning: { border: "#ffaa00", bg: "rgba(60, 45, 0, 0.9)", text: "#ffdd88", icon: "🟡" },
       info: { border: "#4488ff", bg: "rgba(15, 30, 60, 0.9)", text: "#88ccff", icon: "🔵" },
+      debug: { border: "#8a63ff", bg: "rgba(40, 20, 60, 0.9)", text: "#c8b8ff", icon: "🟣" },
     };
     const color = colors[error.type] || colors.error;
 

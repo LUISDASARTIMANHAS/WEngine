@@ -27,10 +27,10 @@ export class CollisionSystem {
 
         if (!this.isColliding(transformA, transformB)) continue;
 
-        // scene.engine?.logger?.debug("collision", "Colisão detectada.", {
-        //   entityA: entityA.name,
-        //   entityB: entityB.name
-        // });
+        scene.engine?.logger?.debug("collision", "Colisão detectada.", {
+          entityA: entityA.name,
+          entityB: entityB.name
+        });
 
         if (!colliderA.isStatic && colliderB.isStatic) {
           this.separate(transformA, transformB);

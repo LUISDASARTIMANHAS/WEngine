@@ -84,6 +84,18 @@ export class Engine {
     this.time = new Time();
 
     /**
+     * Métricas de performance do último frame.
+     * @type {{mode:string,sceneName:string,entityCount:number,fps:number,deltaTime:number,totalFrameMs:number,updateMs:number,physicsMs:number,collisionMs:number,damageMs:number,cameraMs:number,renderMs:number,cleanupMs:number,debugMs:number}|null}
+     */
+    this.lastPerformanceMetrics = null;
+
+    /**
+     * Métricas de performance do último frame.
+     * @type {{fps:number, deltaTime:number, totalFrameMs:number, updateMs:number, physicsMs:number, collisionMs:number, damageMs:number, cameraMs:number, renderMs:number, cleanupMs:number, debugMs:number}|null}
+     */
+    this.lastPerformanceMetrics = null;
+
+    /**
      * Logger central.
      * @type {Logger}
      */
@@ -146,6 +158,12 @@ export class Engine {
      * @type {ErrorDisplaySystem}
      */
     this.errorDisplaySystem = new ErrorDisplaySystem();
+
+    this.logger.onLog = (entry) => {
+      if (this.errorDisplaySystem) {
+        this.errorDisplaySystem.addLog(entry);
+      }
+    };
 
     /**
      * Callback de debug.
@@ -293,27 +311,31 @@ export class Engine {
 
     const frameEnd = performance.now();
 
+    const metrics = {
+      mode: this.mode,
+      sceneName: this.currentScene.name,
+      entityCount: this.currentScene.entities.length,
+      fps: this.time.fps,
+      deltaTime,
+      totalFrameMs: Number((frameEnd - frameStart).toFixed(3)),
+      updateMs: Number((updateEnd - updateStart).toFixed(3)),
+      physicsMs: Number((physicsEnd - physicsStart).toFixed(3)),
+      collisionMs: Number((collisionEnd - collisionStart).toFixed(3)),
+      damageMs: Number((damageEnd - damageStart).toFixed(3)),
+      cameraMs: Number((cameraEnd - cameraStart).toFixed(3)),
+      renderMs: Number((renderEnd - renderStart).toFixed(3)),
+      cleanupMs: Number((cleanupEnd - cleanupStart).toFixed(3)),
+      debugMs: Number((debugEnd - debugStart).toFixed(3)),
+    };
+
+    this.lastPerformanceMetrics = metrics;
+
     this.logger.debugThrottle(
       "engine-performance",
       2000,
       "engine",
       "Métricas de performance do frame.",
-      {
-        mode: this.mode,
-        sceneName: this.currentScene.name,
-        entityCount: this.currentScene.entities.length,
-        fps: this.time.fps,
-        deltaTime,
-        totalFrameMs: Number((frameEnd - frameStart).toFixed(3)),
-        updateMs: Number((updateEnd - updateStart).toFixed(3)),
-        physicsMs: Number((physicsEnd - physicsStart).toFixed(3)),
-        collisionMs: Number((collisionEnd - collisionStart).toFixed(3)),
-        damageMs: Number((damageEnd - damageStart).toFixed(3)),
-        cameraMs: Number((cameraEnd - cameraStart).toFixed(3)),
-        renderMs: Number((renderEnd - renderStart).toFixed(3)),
-        cleanupMs: Number((cleanupEnd - cleanupStart).toFixed(3)),
-        debugMs: Number((debugEnd - debugStart).toFixed(3)),
-      },
+      metrics,
     );
 
     requestAnimationFrame(this.loop.bind(this));
